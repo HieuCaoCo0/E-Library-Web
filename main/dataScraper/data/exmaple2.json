@@ -1,0 +1,59 @@
+[
+    {
+        "title": "The Hunger Games",
+        "author": "Suzanne Collins",
+        "rating": "4.36",
+        "cover_image": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1586722975i/2767052.jpg",
+        "description": "Winning means fame and fortune. Losing means certain death. The Hunger Games have begun. . . . In the ruins of a place once known as North America lies the nation of Panem, a shining Capitol surrounded by twelve outlying districts. The Capitol is harsh and cruel and keeps the districts in line by forcing them all to send one boy and one girl between the ages of twelve and eighteen to participate in the annual Hunger Games, a fight to the death on live TV. Sixteen-year-old Katniss Everdeen regards it as a death sentence when she steps forward to take her sister's place in the Games. But Katniss has been close to dead before-and survival, for her, is second nature. Without really meaning to, she becomes a contender. But if she is to win, she will have to start making choices that weigh survival against humanity and life against love. Show more",
+        "pages": "374",
+        "publish_date": "First published September 14, 2008",
+        "genres": [
+            "Young Adult",
+            "Dystopia",
+            "Fiction",
+            "Fantasy",
+            "Science Fiction",
+            "Romance",
+            "Adventure"
+        ],
+        "source_url": "https://www.goodreads.com/book/show/2767052-the-hunger-games"
+    },
+    {
+        "title": "Pride and Prejudice",
+        "author": "Jane Austen",
+        "rating": "4.30",
+        "cover_image": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1320399351i/1885.jpg",
+        "description": "This comedy of manners about the games of Eros played between the proud Mr. Darcy and the prejudiced Elizabeth Bennet is one of Jane Austen's most-loved novels. Biting with irony and sparkling with mirth, Pride & Prejudice is a jovial commentary on human behavior in the intricate web of love. This edition includes a new introduction from bestselling novelist Anna Quindlin.",
+        "pages": "279",
+        "publish_date": "First published January 28, 1813",
+        "genres": [
+            "Classics",
+            "Romance",
+            "Fiction",
+            "Historical Fiction",
+            "Historical",
+            "Audiobook",
+            "Literature"
+        ],
+        "source_url": "https://www.goodreads.com/book/show/1885.Pride_and_Prejudice"
+    },
+    {
+        "title": "To Kill a Mockingbird",
+        "author": "Harper Lee",
+        "rating": "4.26",
+        "cover_image": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1553383690i/2657.jpg",
+        "description": "\"Shoot all the bluejays you want, if you can hit 'em, but remember it's a sin to kill a mockingbird.\" A lawyer's advice to his children as he defends the real mockingbird of Harper Lee's classic novel - a black man charged with the rape of a white girl. Through the young eyes of Scout and Jem Finch, Harper Lee explores with exuberant humour the irrationality of adult attitudes to race and class in the Deep South of the 1930s. The conscience of a town steeped in prejudice, violence and hypocrisy is pricked by the stamina of one man's struggle for justice. But the weight of history will only tolerate so much. \"To Kill A Mockingbird\" became both an instant bestseller and a critical success when it was first published in 1960. It went on to win the Pulitzer Prize in 1961 and was later made into an Academy Award-winning film. Show more",
+        "pages": "323",
+        "publish_date": "First published July 11, 1960",
+        "genres": [
+            "Classics",
+            "Fiction",
+            "Historical Fiction",
+            "School",
+            "Literature",
+            "Young Adult",
+            "Historical"
+        ],
+        "source_url": "https://www.goodreads.com/book/show/2657.To_Kill_a_Mockingbird"
+    }
+]

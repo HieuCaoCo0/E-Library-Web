@@ -1,0 +1,40 @@
+[
+    {
+        "title": "The Hunger Games",
+        "author": "Suzanne Collins",
+        "rating": "4.36",
+        "cover_image": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1586722975i/2767052.jpg",
+        "description": "N/A",
+        "pages": "374",
+        "publish_date": "First published September 14, 2008",
+        "genres": [
+            "Young Adult",
+            "Dystopia",
+            "Fiction",
+            "Fantasy",
+            "Science Fiction",
+            "Romance",
+            "Adventure"
+        ],
+        "source_url": "https://www.goodreads.com/book/show/2767052-the-hunger-games"
+    },
+    {
+        "title": "Pride and Prejudice",
+        "author": "Jane Austen",
+        "rating": "4.30",
+        "cover_image": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1320399351i/1885.jpg",
+        "description": "N/A",
+        "pages": "279",
+        "publish_date": "First published January 28, 1813",
+        "genres": [
+            "Classics",
+            "Romance",
+            "Fiction",
+            "Historical Fiction",
+            "Historical",
+            "Audiobook",
+            "Literature"
+        ],
+        "source_url": "https://www.goodreads.com/book/show/1885.Pride_and_Prejudice"
+    }
+]
