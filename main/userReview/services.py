@@ -10,6 +10,11 @@ _UNSET = object()
 
 class ReviewService:
     @staticmethod
+    def get_user_ratings():
+        """Return the compact rating dataset used by Recommendation."""
+        return UserReview.objects.values("user_id", "book_id", "rating")
+
+    @staticmethod
     def recalculate_book_rating(book):
         stats = UserReview.objects.filter(book=book).aggregate(
             average_rating=Avg("rating"),

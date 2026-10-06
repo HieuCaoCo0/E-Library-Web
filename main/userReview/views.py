@@ -47,6 +47,7 @@ class BookReviewListCreateAPIView(generics.ListCreateAPIView):
 class UserReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = UserReview.objects.select_related("user", "book")
 	serializer_class = UserReviewSerializer
+	authentication_classes = [BasicAuthentication]
 	permission_classes = [IsReviewOwnerOrReadOnly]
 
 	def update(self, request, *args, **kwargs):

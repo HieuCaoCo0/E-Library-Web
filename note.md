@@ -113,7 +113,7 @@ main/                                # Thư mục chứa manage.py
 
 - [ ] Phối hợp với **Đỗ Minh Hoàng (Mục 4 - Book)**: Đảm bảo API `GET /api/books/{id}/` trả về đúng `average_rating`, `reviews_count` và danh sách bình luận khi có review mới.
 - [ ] Phối hợp với **Nguyễn Đức Tài (Mục 1 - Auth)**: Kiểm tra gửi JWT Bearer Token trên Header hoạt động trơn tru với các API `POST`, `PUT`, `DELETE`.
-- [ ] Cung cấp hàm truy vấn dữ liệu `(user_id, book_id, rating)` cho nhóm làm thuật toán **Recommendation**.
+- [x] Cung cấp hàm truy vấn dữ liệu `(user_id, book_id, rating)` cho nhóm làm thuật toán **Recommendation**.
 
 ---
 
@@ -356,7 +356,7 @@ urlpatterns = [
    - Gọi `POST /api/auth/login/` để lấy `access_token` của **User A** và **User B**.
    - Gắn vào Header: `Authorization: Bearer <access_token>`.
 2. **Test tự động bằng Django Test Runner:**
-   - Chạy lệnh: `python manage.py test reviews`
+   - Chạy lệnh: `python manage.py test userReview`
 
 ### 5.2. Bảng Checklist Test Cases (Test được tích `[x]`, lỗi tích `[!]`)
 
@@ -375,17 +375,20 @@ urlpatterns = [
 | **TC11** | `DELETE /api/user-reviews/{id}/` | Chủ sở hữu (User B) xóa review của chính mình                                             | `review_id` của User B, Token của User B              | `204 No Content`, review bị xóa, `average_rating` của sách quay về `5.0` (chỉ còn của User A) |             `[x]`              | Đạt                    |
 | **TC12** | `DELETE /api/user-reviews/{id}/` | Xóa nốt review cuối cùng của cuốn sách (User A xóa)                                       | `review_id` của User A, Token của User A              | `204 No Content`, `average_rating` của sách về `0.0` (không bị lỗi chia cho 0 hay `None`)     |             `[x]`              | Đạt                    |
 
+**Kết quả Full Regression ngày 07/10/2026:** `12/12` test case đạt, lệnh `python manage.py test userReview` trả về `OK`.
+
 ---
 
 ## 🐞 6. Nhật ký Lỗi & Cách khắc phục (Bug Tracker Log)
 
 _(Khi test case nào bị `[!]`, ghi chi tiết vào bảng dưới đây để tiện theo dõi và fix)_
 
-| Ngày  | Mã lỗi / Liên kết TC           | Mô tả hiện tượng lỗi (Traceback / Status Code)                                                 | Nguyên nhân gốc (Root Cause)                                                                      | Cách khắc phục (Solution)                                                                      |  Trạng thái  |
-| :---- | :----------------------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------- | :----------: |
-| 06/10 | _Ví dụ: BUG-01 (TC12)_         | _Lỗi khi xóa hết review của sách thì `average_rating` bị `None` gây lỗi 500_                   | _Hàm `Avg('rating')` trả về `None` khi bảng trống_                                                | _Thêm điều kiện `if stats['avg_rating'] is not None else 0.0` trong `services.py`_             | `[x] Đã fix` |
-| 07/10 | BUG-02 (TC03, TC05, TC07-TC12) | `django.db.utils.OperationalError: table userReview_userreview has no column named created_at` | Migration `0001_initial` không tạo hai trường timestamp có trong model                            | Thêm migration `0002_add_review_timestamps_and_rating_validation.py` và chạy lại test database | `[x] Đã fix` |
-| 07/10 | BUG-03 (TC04)                  | `AssertionError: 403 != 401` khi POST review không xác thực                                    | DRF dùng `SessionAuthentication`, trả 403 khi anonymous request không có authentication challenge | Cấu hình `BasicAuthentication` cho `BookReviewListCreateAPIView` để trả 401                    | `[x] Đã fix` |
+| Ngày  | Mã lỗi / Liên kết TC           | Mô tả hiện tượng lỗi (Traceback / Status Code)                                                 | Nguyên nhân gốc (Root Cause)                                                                      | Cách khắc phục (Solution)                                                                         |  Trạng thái  |
+| :---- | :----------------------------- | :--------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------ | :----------: |
+| 06/10 | _Ví dụ: BUG-01 (TC12)_         | _Lỗi khi xóa hết review của sách thì `average_rating` bị `None` gây lỗi 500_                   | _Hàm `Avg('rating')` trả về `None` khi bảng trống_                                                | _Thêm điều kiện `if stats['avg_rating'] is not None else 0.0` trong `services.py`_                | `[x] Đã fix` |
+| 07/10 | BUG-02 (TC03, TC05, TC07-TC12) | `django.db.utils.OperationalError: table userReview_userreview has no column named created_at` | Migration `0001_initial` không tạo hai trường timestamp có trong model                            | Thêm migration `0002_add_review_timestamps_and_rating_validation.py` và chạy lại test database    | `[x] Đã fix` |
+| 07/10 | BUG-03 (TC04)                  | `AssertionError: 403 != 401` khi POST review không xác thực                                    | DRF dùng `SessionAuthentication`, trả 403 khi anonymous request không có authentication challenge | Cấu hình `BasicAuthentication` cho `BookReviewListCreateAPIView` để trả 401                       | `[x] Đã fix` |
+| 07/10 | BUG-04 (TC01-TC12)             | `CommandError: Conflicting migrations detected; multiple leaf nodes in the migration graph`    | Tồn tại hai file migration `0002` trùng dependency và cùng operations                             | Xóa migration trùng `0002_userreview_rating_timestamps.py`, giữ migration hợp lệ và chạy lại test | `[x] Đã fix` |
 
 ---
 
