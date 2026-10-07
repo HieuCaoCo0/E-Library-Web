@@ -51,8 +51,7 @@ INSTALLED_APPS = [
     # "auth",
     "dataScraper.apps.DataScraperConfig",
 
-    'rest_framework',
-    'django_filters',
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
