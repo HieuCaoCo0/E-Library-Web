@@ -1,0 +1,8 @@
+Django==6.1.1
+djangorestframework==3.18.1
+mysqlclient==2.3.0
+beautifulsoup4==4.15.0
+requests==2.34.2
+selenium==4.50.0
+webdriver-manager==4.1.2
+python-dotenv==1.2.4
