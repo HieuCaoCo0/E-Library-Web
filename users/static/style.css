@@ -1,0 +1,100 @@
+/* Tải font chữ Inter từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    /* Nền xám trắng pha chút xanh ngọc cực nhẹ */
+    background-color: #f4f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #333;
+}
+
+.form-container {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 16px; /* Bo góc mềm mại hơn */
+    /* Đổ bóng lớn, nhạt để form nổi bật lên */
+    box-shadow: 0 10px 30px rgba(0, 128, 115, 0.08);
+    width: 100%;
+    max-width: 380px;
+}
+
+.form-container h2 {
+    text-align: center;
+    color: #1a4f4c; /* Xanh ngọc bích đậm */
+    margin-bottom: 30px;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #666;
+}
+
+input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 15px;
+    transition: all 0.3s ease; /* Hiệu ứng mượt mà khi click */
+}
+
+input:focus {
+    outline: none;
+    border-color: #2ab7a9; /* Viền xanh ngọc khi đang gõ */
+    box-shadow: 0 0 0 4px rgba(42, 183, 169, 0.15);
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #2ab7a9; /* Nút màu xanh ngọc bích sáng */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 15px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+    /* Khi di chuột, nút chuyển sắc vàng nắng ấm áp */
+    background-color: #f5a623;
+}
+
+.btn:active {
+    transform: scale(0.98); /* Hiệu ứng lún xuống khi click */
+}
+
+p {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #777;
+}
+
+a {
+    color: #2ab7a9;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    color: #f5a623;
+    text-decoration: underline;
+}
