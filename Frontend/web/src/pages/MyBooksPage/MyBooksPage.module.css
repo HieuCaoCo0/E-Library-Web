@@ -1,0 +1,343 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1220px;
+  width: 100%;
+  margin: 34px auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Thanh tiêu đề & Công cụ tìm kiếm trên kệ */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d8d4c8;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  color: #382110;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.shelfSearch {
+  width: 260px;
+  height: 40px;
+  padding: 6px 14px;
+  border: 1px solid #dcd6cc;
+  border-radius: 6px;
+  font-size: 15px;
+  color: #1e1915;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.shelfSearch:focus {
+  border-color: #382110;
+  box-shadow: 0 0 0 1px #382110;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid #dcd6cc;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.viewBtn {
+  background: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #706b63;
+  transition: background-color 0.15s;
+}
+
+.viewBtn:hover {
+  background-color: #f9f7f2;
+}
+
+.viewBtnActive {
+  background: #f4f1ea;
+  color: #382110;
+  font-weight: 700;
+}
+
+/* Bố cục 2 cột: Kệ sách bên trái - Bảng sách bên phải */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 40px;
+}
+
+/* Cột trái: Danh mục kệ sách (Bookshelves) */
+.sidebarTitle {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #382110;
+  margin: 0 0 14px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e6e2d8;
+}
+
+.shelfList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px 0;
+}
+
+.shelfItem {
+  margin-bottom: 6px;
+}
+
+.shelfLink {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 10px 12px;
+  font-size: 16px;
+  color: #00635d;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shelfLink:hover {
+  background-color: #f4f1ea;
+  text-decoration: underline;
+}
+
+.shelfLinkActive {
+  font-weight: 700;
+  color: #382110;
+  background-color: #f4f1ea;
+}
+
+.statsBox {
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 14px;
+  color: #55504a;
+  line-height: 1.6;
+}
+
+.statsBox strong {
+  color: #382110;
+}
+
+/* Cột phải: Bảng danh sách sách (List View) */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  color: #382110;
+  padding: 12px 10px;
+  border-bottom: 2px solid #ebe6dc;
+}
+
+.table td {
+  padding: 18px 10px;
+  border-bottom: 1px solid #f0ece1;
+  vertical-align: middle;
+}
+
+.coverThumb {
+  width: 64px;
+  height: 94px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  display: block;
+}
+
+.bookTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  color: #1e1915;
+  text-decoration: none;
+  font-size: 17px;
+  line-height: 1.35;
+  display: inline-block;
+}
+
+.bookTitle:hover {
+  color: #00635d;
+  text-decoration: underline;
+}
+
+.authorName {
+  color: #382110;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.authorName:hover {
+  text-decoration: underline;
+}
+
+.avgRating {
+  font-weight: 600;
+  color: #55504a;
+}
+
+.starGroup {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 19px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.starFilled {
+  color: #e87400;
+}
+
+.starEmpty {
+  color: #d4cfc4;
+}
+
+.statusSelect {
+  padding: 8px 12px;
+  border-radius: 18px;
+  border: 1px solid #dcd6cc;
+  background-color: #f4f1ea;
+  color: #382110;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.statusSelect:focus {
+  border-color: #382110;
+}
+
+.dateCell {
+  font-size: 14px;
+  color: #706b63;
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: #999999;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.removeBtn:hover {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
+
+/* Chế độ xem Lưới (Grid View) */
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 24px;
+}
+
+.gridCard {
+  border: 1px solid #ece9e2;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.gridCover {
+  width: 100%;
+  height: 245px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.gridAuthor {
+  font-size: 14px;
+  color: #706b63;
+  margin: 4px 0 12px 0;
+}
+
+.emptyBox {
+  text-align: center;
+  padding: 64px 20px;
+  background-color: #faf9f6;
+  border-radius: 8px;
+  border: 1px dashed #dcd6cc;
+  color: #706b63;
+  font-size: 17px;
+}
+
+.browseLink {
+  display: inline-block;
+  margin-top: 12px;
+  color: #00635d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.browseLink:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  background-color: #f4f1ea;
+  border-top: 1px solid #e2ddd3;
+  padding: 26px 20px;
+  text-align: center;
+  font-size: 15px;
+  color: #706b63;
+  margin-top: 48px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
