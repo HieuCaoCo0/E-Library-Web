@@ -2,8 +2,7 @@
   min-height: 100vh;
   background-color: #ffffff;
   color: #1e1915;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
 }
@@ -24,7 +23,7 @@
 }
 
 .bannerTitle {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 30px;
   color: #382110;
   margin: 0 0 8px 0;
@@ -105,7 +104,7 @@
 }
 
 .resultTitle {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 24px;
   color: #382110;
   margin: 0;
@@ -165,7 +164,7 @@
 }
 
 .bookTitle {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 16px;
   font-weight: 700;
   color: #1e1915;
@@ -262,7 +261,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-weight: 700;
   font-size: 17px;
   flex-shrink: 0;
@@ -287,7 +286,7 @@
 }
 
 .challengeTitle {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 17px;
   font-weight: 700;
   color: #382110;

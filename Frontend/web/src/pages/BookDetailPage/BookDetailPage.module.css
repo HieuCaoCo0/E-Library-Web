@@ -2,8 +2,7 @@
   min-height: 100vh;
   background-color: #ffffff;
   color: #1e1915;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .container {
@@ -48,7 +47,7 @@
 
 /* Cột phải: Thông tin sách & Đánh giá */
 .bookTitle {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 36px;
   color: #1e1915;
   margin: 0 0 10px 0;
@@ -56,7 +55,7 @@
 }
 
 .authorLink {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 21px;
   color: #382110;
   text-decoration: none;
@@ -84,7 +83,7 @@
 }
 
 .avgNumber {
-  font-family: Georgia, serif;
+  font-family: var(--font-serif);
   font-size: 26px;
   font-weight: 700;
 }
@@ -119,7 +118,7 @@
 }
 
 .sectionTitle {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-serif);
   font-size: 26px;
   color: #382110;
   margin: 0 0 20px 0;
