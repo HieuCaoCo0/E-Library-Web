@@ -39,6 +39,9 @@ export default function Header() {
             <Link to="/my-books" className={styles.navLink}>
               My Books
             </Link>
+            <Link to="/authors" className={styles.navLink}>
+              Authors
+            </Link>
           </nav>
         </div>
 

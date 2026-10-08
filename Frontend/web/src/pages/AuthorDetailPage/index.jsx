@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router";
 import Header from "../../components/Header";
 import styles from "./AuthorDetailPage.module.css";
+import Footer from "../../components/Footer";
 
 // Dữ liệu giả lập khớp với API GET /api/authors/{id}/ của Đào Duy Khánh
 const AUTHORS_DATA = {
@@ -213,9 +214,7 @@ export default function AuthorDetailPage() {
         </section>
       </main>
 
-      <footer className={styles.footer}>
-        © 2026 E-Library — Hệ thống quản lý đọc sách & đánh giá trực tuyến
-      </footer>
+      <Footer />
     </div>
   );
 }

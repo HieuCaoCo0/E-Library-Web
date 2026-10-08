@@ -254,16 +254,6 @@
   border-color: #dcd6cc;
 }
 
-.footer {
-  background-color: #f4f1ea;
-  border-top: 1px solid #e2ddd3;
-  padding: 26px 20px;
-  text-align: center;
-  font-size: 15px;
-  color: #706b63;
-  margin-top: 48px;
-}
-
 @media (max-width: 850px) {
   .container {
     grid-template-columns: 1fr;
