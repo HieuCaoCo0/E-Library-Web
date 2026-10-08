@@ -26,7 +26,7 @@ export default function RegisterPage() {
 
   return (
     <div className={styles.wrapper}>
-      <Link to="/" className={styles.logo}>
+      <Link to="/">
         <img src={logo} alt="E Library" />
       </Link>
 

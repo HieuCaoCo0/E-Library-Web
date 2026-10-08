@@ -15,7 +15,7 @@ export default function LoginPage() {
 
   return (
     <div className={styles.wrapper}>
-      <Link to="/" className={styles.logo}>
+      <Link to="/">
         <img src={logo} alt="E Library" />
       </Link>
 
@@ -56,7 +56,7 @@ export default function LoginPage() {
         </form>
 
         <p className={styles.terms}>
-          By signing in, you agree to the Goodreads{" "}
+          By signing in, you agree to the ELibrary{" "}
           <a href="#terms" className={styles.link}>
             Terms of Service
           </a>{" "}
@@ -67,21 +67,8 @@ export default function LoginPage() {
           .
         </p>
 
-        <div className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            id="keepSignedIn"
-            checked={keepSignedIn}
-            onChange={(e) => setKeepSignedIn(e.target.checked)}
-          />
-          <label htmlFor="keepSignedIn">Keep me signed in.</label>
-          <a href="#details" className={styles.link}>
-            Details
-          </a>
-        </div>
-
         <div className={styles.divider}>
-          <span>New to Goodreads?</span>
+          <span>New to ELibrary?</span>
         </div>
 
         <Link to="/register" className={styles.btnSecondary}>
@@ -95,7 +82,7 @@ export default function LoginPage() {
           <a href="#privacy">Privacy</a>
           <a href="#help">Help</a>
         </div>
-        <div>© 2026 Goodreads LLC</div>
+        <div>© 2026 ELibrary LLC</div>
       </footer>
     </div>
   );
