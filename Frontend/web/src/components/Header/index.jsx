@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import logo from "../../assets/logo.svg";
 import styles from "./Header.module.css";
+import avatar from "../../assets/avatar.png";
 
 export default function Header() {
   const [searchParams] = useSearchParams();
@@ -42,6 +43,9 @@ export default function Header() {
             <Link to="/authors" className={styles.navLink}>
               Authors
             </Link>
+            <Link to="/admin" className={styles.navLink}>
+              Admin
+            </Link>
           </nav>
         </div>
 
@@ -70,6 +74,9 @@ export default function Header() {
         </form>
 
         <div className={styles.rightSection}>
+          <Link to="/profile" className={styles.profileBtn} title="My Profile">
+            <img src={avatar} alt="Profile" className={styles.avatarImg} />
+          </Link>
           <Link to="/login" className={styles.signInBtn}>
             Sign In
           </Link>

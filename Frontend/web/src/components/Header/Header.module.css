@@ -128,3 +128,32 @@
 .registerBtn:hover {
   opacity: 0.9;
 }
+
+.profileBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px; /* Đệm đều 4 phía để khung bao ngoài vuông vức */
+  border-radius: 50%; /* Bo tròn 50% tạo thành hình tròn hoàn hảo */
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    transform 0.15s;
+}
+
+.profileBtn:hover {
+  background-color: #e2ddd3; /* Vòng tròn mảnh bao quanh khi hover */
+}
+
+.avatarImg {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #d8d4c8;
+  background-color: #ffffff;
+  display: block;
+  transition: border-color 0.15s;
+}
+
+

@@ -1,0 +1,330 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1140px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 48px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* CỘT TRÁI: Thẻ thông tin & Ảnh đại diện */
+.profileCard {
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 10px;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.avatarWrapper {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin-bottom: 18px;
+}
+
+.avatarImg {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #382110;
+  background-color: #e8e3d8;
+  display: block;
+}
+
+.avatarFallback {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-color: #382110;
+  color: #f4f1ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 56px;
+  font-weight: 700;
+  border: 3px solid #e6e2d8;
+}
+
+.uploadLabel {
+  margin-top: 8px;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #00635d;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.fileInput {
+  display: none;
+}
+
+.userName {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #382110;
+  margin: 8px 0 4px 0;
+}
+
+.userEmail {
+  font-size: 15px;
+  color: #706b63;
+  margin: 0 0 12px 0;
+}
+
+.roleBadge {
+  display: inline-block;
+  background-color: #e8e3d8;
+  color: #382110;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 16px;
+  margin-bottom: 22px;
+}
+
+.statsGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid #e2ddd3;
+  border-bottom: 1px solid #e2ddd3;
+  margin-bottom: 20px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statNumber {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #382110;
+}
+
+.statLabel {
+  font-size: 13px;
+  color: #706b63;
+}
+
+.metaInfo {
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: #55504a;
+  line-height: 1.8;
+}
+
+/* CỘT PHẢI: Chi tiết Hồ sơ & Form Cập nhật */
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d8d4c8;
+  margin-bottom: 26px;
+}
+
+.pageTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  color: #382110;
+  margin: 0;
+}
+
+.editBtn {
+  background-color: #f4f1ea;
+  color: #382110;
+  border: 1px solid #dcd6cc;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.editBtn:hover {
+  background-color: #e8e3d8;
+}
+
+.alertSuccess {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  margin-bottom: 22px;
+}
+
+/* Chế độ Xem (View Mode) */
+.sectionBlock {
+  margin-bottom: 34px;
+}
+
+.blockTitle {
+  font-size: 15px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #382110;
+  margin: 0 0 12px 0;
+}
+
+.bioBox {
+  background-color: #faf9f6;
+  border: 1px solid #ece9e2;
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #2c2620;
+}
+
+/* Form chỉnh sửa (Edit Mode) */
+.editForm {
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 10px;
+  padding: 26px;
+  margin-bottom: 36px;
+}
+
+.field {
+  margin-bottom: 18px;
+}
+
+.label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #382110;
+  margin-bottom: 8px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #dcd6cc;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: #1e1915;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #382110;
+  box-shadow: 0 0 0 1px #382110;
+}
+
+.textarea {
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.saveBtn {
+  background-color: #382110;
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  color: #382110;
+  border: 1px solid #a6a6a6;
+  padding: 10px 22px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* Hoạt động gần đây */
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.activityCard {
+  border: 1px solid #ece9e2;
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.activityBook {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e1915;
+  text-decoration: none;
+}
+
+.activityBook:hover {
+  color: #00635d;
+  text-decoration: underline;
+}
+
+.activityComment {
+  font-size: 15px;
+  color: #4f4a44;
+  margin: 6px 0 0 0;
+}
+
+.stars {
+  color: #e87400;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 850px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+}

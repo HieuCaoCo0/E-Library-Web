@@ -1,0 +1,249 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1220px;
+  width: 100%;
+  margin: 36px auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d8d4c8;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  color: #382110;
+  margin: 0 0 6px 0;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: #706b63;
+}
+
+/* 3 Tab chuyển đổi: Books - Authors - Genres */
+.tabBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 28px;
+  border-bottom: 2px solid #ebe6dc;
+  padding-bottom: 12px;
+}
+
+.tabBtn {
+  background-color: #f9f7f2;
+  color: #382110;
+  border: 1px solid #dcd6cc;
+  padding: 10px 22px;
+  border-radius: 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tabBtn:hover {
+  background-color: #f4f1ea;
+}
+
+.tabBtnActive {
+  background-color: #382110;
+  color: #ffffff;
+  border-color: #382110;
+}
+
+/* Bố cục 2 cột: Form Thêm/Sửa bên trái - Bảng dữ liệu bên phải */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.formCard {
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.formTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  color: #382110;
+  margin: 0 0 18px 0;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #382110;
+  margin-bottom: 6px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dcd6cc;
+  border-radius: 6px;
+  font-size: 15px;
+  font-family: inherit;
+  background-color: #ffffff;
+  color: #1e1915;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: #382110;
+  box-shadow: 0 0 0 1px #382110;
+}
+
+.textarea {
+  min-height: 90px;
+  line-height: 1.5;
+}
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.submitBtn {
+  flex: 1;
+  background-color: #409970;
+  color: #ffffff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitBtn:hover {
+  background-color: #35825e;
+}
+
+.cancelBtn {
+  background-color: #ffffff;
+  color: #382110;
+  border: 1px solid #a6a6a6;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Bảng danh sách bên phải */
+.tableWrapper {
+  border: 1px solid #ece9e2;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.table th {
+  background-color: #f4f1ea;
+  color: #382110;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2ddd3;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f0ece1;
+  vertical-align: middle;
+}
+
+.itemName {
+  font-weight: 700;
+  color: #1e1915;
+  font-size: 16px;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.editBtn {
+  background-color: #f4f1ea;
+  color: #382110;
+  border: 1px solid #dcd6cc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editBtn:hover {
+  background-color: #e8e3d8;
+}
+
+.deleteBtn {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteBtn:hover {
+  background-color: #fecaca;
+}
+
+.footer {
+  background-color: #f4f1ea;
+  border-top: 1px solid #e2ddd3;
+  padding: 26px 20px;
+  text-align: center;
+  font-size: 15px;
+  color: #706b63;
+  margin-top: 48px;
+}
+
+@media (max-width: 900px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+}
