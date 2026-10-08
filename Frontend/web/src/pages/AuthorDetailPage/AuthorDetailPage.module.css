@@ -1,0 +1,275 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1140px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 52px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* CỘT TRÁI: Ảnh tác giả & Thông tin tóm tắt */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatarBox {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: #f4f1ea;
+  border: 3px solid #e6e2d8;
+  color: #382110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 72px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 18px rgba(56, 33, 16, 0.08);
+}
+
+.followBtn {
+  width: 200px;
+  height: 42px;
+  border-radius: 22px;
+  border: 1px solid #382110;
+  background-color: #382110;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 28px;
+  transition: all 0.15s;
+}
+
+.followBtn:hover {
+  opacity: 0.9;
+}
+
+.followingBtn {
+  background-color: #f4f1ea;
+  color: #382110;
+  border-color: #dcd6cc;
+}
+
+.infoCard {
+  width: 100%;
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 8px;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.infoRow {
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.infoRow:last-child {
+  margin-bottom: 0;
+}
+
+.infoLabel {
+  font-weight: 700;
+  color: #382110;
+  display: block;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.infoValue {
+  color: #4f4a44;
+}
+
+/* CỘT PHẢI: Tiểu sử & Danh sách tác phẩm */
+.authorName {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 36px;
+  color: #1e1915;
+  margin: 0 0 10px 0;
+}
+
+.statsBar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 15px;
+  color: #706b63;
+  padding-bottom: 18px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #ebe6dc;
+}
+
+.stars {
+  color: #e87400;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+.bioTitle {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #382110;
+  margin: 0 0 10px 0;
+}
+
+.bioText {
+  font-size: 17px;
+  line-height: 1.75;
+  color: #2c2620;
+  margin: 0 0 40px 0;
+}
+
+/* Khu vực Danh sách sách của tác giả */
+.booksSection {
+  border-top: 1px solid #d8d4c8;
+  padding-top: 30px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.sectionTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 26px;
+  color: #382110;
+  margin: 0;
+}
+
+.bookList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.bookItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 18px;
+  border: 1px solid #ece9e2;
+  border-radius: 8px;
+  background-color: #ffffff;
+  transition: box-shadow 0.15s;
+}
+
+.bookItem:hover {
+  box-shadow: 0 6px 14px rgba(56, 33, 16, 0.07);
+}
+
+.bookLeft {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.bookCover {
+  width: 85px;
+  height: 126px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14);
+  flex-shrink: 0;
+}
+
+.bookTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e1915;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.bookTitle:hover {
+  color: #00635d;
+  text-decoration: underline;
+}
+
+.bookRating {
+  font-size: 15px;
+  color: #706b63;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bookDesc {
+  font-size: 15px;
+  color: #4f4a44;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.shelfBtn {
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #3f8363;
+  background-color: #409970;
+  color: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color 0.15s;
+}
+
+.shelfBtn:hover {
+  background-color: #35825e;
+}
+
+.shelfBtnAdded {
+  background-color: #f4f1ea;
+  color: #382110;
+  border-color: #dcd6cc;
+}
+
+.footer {
+  background-color: #f4f1ea;
+  border-top: 1px solid #e2ddd3;
+  padding: 26px 20px;
+  text-align: center;
+  font-size: 15px;
+  color: #706b63;
+  margin-top: 48px;
+}
+
+@media (max-width: 850px) {
+  .container {
+    grid-template-columns: 1fr;
+  }
+  .bookItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

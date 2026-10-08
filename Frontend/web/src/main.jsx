@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
 import BookDetailPage from "./pages/BookDetailPage";
 import MyBooksPage from "./pages/MyBooksPage";
+import AuthorDetailPage from "./pages/AuthorDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
   {
     path: "/my-books",
     element: <MyBooksPage />,
+  },
+  {
+    path: "/authors/:id",
+    element: <AuthorDetailPage />,
   },
 ]);
 
