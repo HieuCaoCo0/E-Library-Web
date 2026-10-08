@@ -8,7 +8,7 @@
 }
 
 .container {
-  max-width: 1220px;
+  max-width: 1440px;
   height: 66px; /* Tăng chiều cao Header từ 58px lên 66px */
   margin: 0 auto;
   padding: 0 24px;
@@ -155,4 +155,88 @@
   transition: border-color 0.15s;
 }
 
+@media (max-width: 900px) {
+  .container {
+    height: auto;
+    min-height: 66px;
+    padding: 12px 20px;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+  }
 
+  .leftSection {
+    display: contents;
+  }
+
+  .logo {
+    order: 1;
+  }
+
+  .rightSection {
+    order: 2;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .searchForm {
+    order: 3;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .nav {
+    order: 4;
+    flex: 0 0 100%;
+    width: 100%;
+    justify-content: space-around;
+    border-top: 1px solid #e6e2d8;
+    padding-top: 8px;
+  }
+
+  .navLink {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .nav {
+    gap: 0;
+    min-width: 0;
+  }
+
+  .navLink {
+    font-size: 14px;
+    padding: 7px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding-top: 8px;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+
+  .logo img {
+    height: 30px;
+  }
+
+  .rightSection {
+    gap: 4px;
+  }
+
+  .signInBtn {
+    padding: 6px 8px;
+    font-size: 15px;
+  }
+
+  .registerBtn {
+    padding: 6px 10px;
+    font-size: 15px;
+  }
+}

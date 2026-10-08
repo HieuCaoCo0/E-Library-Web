@@ -72,7 +72,7 @@
 /* Bố cục 2 cột: Form Thêm/Sửa bên trái - Bảng dữ liệu bên phải */
 .contentGrid {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 36px;
   align-items: start;
 }
@@ -164,12 +164,14 @@
 .tableWrapper {
   border: 1px solid #ece9e2;
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  min-width: 0;
   background-color: #ffffff;
 }
 
 .table {
   width: 100%;
+  min-width: 620px;
   border-collapse: collapse;
   font-size: 15px;
 }
@@ -243,6 +245,10 @@
 
 @media (max-width: 900px) {
   .contentGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contentGrid > * {
+    min-width: 0;
   }
 }

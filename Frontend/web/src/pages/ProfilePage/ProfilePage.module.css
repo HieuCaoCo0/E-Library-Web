@@ -13,7 +13,7 @@
   margin: 40px auto;
   padding: 0 24px;
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 300px minmax(0, 1fr);
   gap: 48px;
   box-sizing: border-box;
   flex: 1;
@@ -105,7 +105,7 @@
 .statsGrid {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 16px 0;
   border-top: 1px solid #e2ddd3;
@@ -324,6 +324,10 @@
 
 @media (max-width: 850px) {
   .container {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .container > * {
+    min-width: 0;
   }
 }

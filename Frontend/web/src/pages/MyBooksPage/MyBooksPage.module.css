@@ -88,7 +88,7 @@
 /* Bố cục 2 cột: Kệ sách bên trái - Bảng sách bên phải */
 .layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   gap: 40px;
 }
 
@@ -276,11 +276,13 @@
 /* Chế độ xem Lưới (Grid View) */
 .gridContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  min-width: 0;
+  grid-template-columns: repeat(auto-fill, minmax(185px, minmax(0, 1fr)));
   gap: 24px;
 }
 
 .gridCard {
+  min-width: 0;
   border: 1px solid #ece9e2;
   border-radius: 8px;
   padding: 14px;
@@ -337,6 +339,49 @@
 
 @media (max-width: 900px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout > * {
+    min-width: 0;
+  }
+
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .topBar {
+    align-items: stretch;
+  }
+
+  .controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .shelfSearch {
+    flex: 1 1 220px;
+    width: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+
+  .pageTitle {
+    font-size: 28px;
+  }
+
+  .controls {
+    gap: 10px;
+  }
+
+  .shelfSearch {
+    flex-basis: 100%;
   }
 }

@@ -10,8 +10,9 @@
   margin: 40px auto;
   padding: 0 24px;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 52px;
+  box-sizing: border-box;
 }
 
 /* Cột trái: Ảnh bìa & Nút kệ sách */
@@ -238,4 +239,45 @@
 
 .deleteBtn {
   color: #b91c1c;
+}
+
+@media (max-width: 850px) {
+  .container {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .container > * {
+    min-width: 0;
+  }
+
+  .reviewHeader {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    margin: 24px auto;
+    padding: 0 16px;
+    gap: 32px;
+  }
+
+  .coverImg,
+  .statusSelect {
+    width: min(250px, 100%);
+  }
+
+  .bookTitle {
+    font-size: 30px;
+  }
+
+  .description {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .reviewForm {
+    padding: 16px;
+  }
 }
