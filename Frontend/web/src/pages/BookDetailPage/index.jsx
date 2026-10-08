@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router";
 import Header from "../../components/Header";
 import styles from "./BookDetailPage.module.css";
+import Footer from "../../components/Footer";
 
 const MOCK_BOOKS = {
   1: {
@@ -216,6 +217,8 @@ export default function BookDetailPage() {
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   );
 }

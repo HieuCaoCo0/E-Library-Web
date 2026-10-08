@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import styles from "./HomePage.module.css";
 
 // Dữ liệu giả lập khớp với API Module 3 (Genre), Module 4 (Book), Module 2 (Author)
@@ -268,9 +269,7 @@ export default function HomePage() {
         </aside>
       </main>
 
-      <footer className={styles.footer}>
-        © 2026 E-Library — Hệ thống quản lý đọc sách & đánh giá trực tuyến
-      </footer>
+      <Footer />
     </div>
   );
 }

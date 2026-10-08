@@ -37,7 +37,7 @@
 }
 
 .mainContainer {
-  max-width: 1180px;
+  max-width: 1220px;
   width: 100%;
   margin: 28px auto;
   padding: 0 20px;
@@ -311,16 +311,6 @@
 
 .challengeLink:hover {
   text-decoration: underline;
-}
-
-.footer {
-  background-color: #f4f1ea;
-  border-top: 1px solid #e2ddd3;
-  padding: 24px 20px;
-  text-align: center;
-  font-size: 14px;
-  color: #706b63;
-  margin-top: 40px;
 }
 
 @media (max-width: 900px) {

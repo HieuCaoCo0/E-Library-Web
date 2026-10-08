@@ -7,12 +7,12 @@
 }
 
 .container {
-  max-width: 1060px;
-  margin: 32px auto;
-  padding: 0 20px;
+  max-width: 1140px;
+  margin: 40px auto;
+  padding: 0 24px;
   display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 44px;
+  grid-template-columns: 280px 1fr;
+  gap: 52px;
 }
 
 /* Cột trái: Ảnh bìa & Nút kệ sách */
@@ -23,23 +23,23 @@
 }
 
 .coverImg {
-  width: 220px;
-  height: 330px;
+  width: 250px;
+  height: 375px;
   object-fit: cover;
-  border-radius: 6px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
-  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+  margin-bottom: 22px;
 }
 
 .statusSelect {
-  width: 220px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 20px;
+  width: 250px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 22px;
   border: 1px solid #3f8363;
   background-color: #409970;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   outline: none;
@@ -49,19 +49,19 @@
 /* Cột phải: Thông tin sách & Đánh giá */
 .bookTitle {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 32px;
+  font-size: 36px;
   color: #1e1915;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   line-height: 1.25;
 }
 
 .authorLink {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 18px;
+  font-size: 21px;
   color: #382110;
   text-decoration: none;
   display: inline-block;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .authorLink:hover {
@@ -71,26 +71,26 @@
 .ratingBar {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid #ebe6dc;
 }
 
 .stars {
   color: #e87400;
-  font-size: 20px;
+  font-size: 24px;
   letter-spacing: 2px;
 }
 
 .avgNumber {
   font-family: Georgia, serif;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
 }
 
 .metaCount {
-  font-size: 14px;
+  font-size: 16px;
   color: #706b63;
 }
 
@@ -98,53 +98,54 @@
   display: inline-block;
   background-color: #f4f1ea;
   color: #382110;
-  padding: 4px 12px;
-  border-radius: 14px;
-  font-size: 13px;
-  margin-bottom: 20px;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 22px;
 }
 
 .description {
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 17px;
+  line-height: 1.75;
   color: #2c2620;
-  margin-bottom: 36px;
+  margin-bottom: 40px;
 }
 
 /* Khu vực Đánh giá & Bình luận (UserReview - Vũ Việt Hoàng) */
 .reviewSection {
   border-top: 1px solid #d8d4c8;
-  padding-top: 28px;
+  padding-top: 32px;
 }
 
 .sectionTitle {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 22px;
+  font-size: 26px;
   color: #382110;
-  margin: 0 0 18px 0;
+  margin: 0 0 20px 0;
 }
 
 .reviewForm {
   background-color: #f9f7f2;
   border: 1px solid #e6e2d8;
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 28px;
+  padding: 24px;
+  margin-bottom: 32px;
 }
 
 .starPicker {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 14px;
-  font-size: 14px;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .starBtn {
   background: none;
   border: none;
-  font-size: 26px;
+  font-size: 30px;
   cursor: pointer;
   padding: 0 2px;
   line-height: 1;
@@ -160,14 +161,14 @@
 
 .textarea {
   width: 100%;
-  min-height: 90px;
-  padding: 12px;
+  min-height: 110px;
+  padding: 14px;
   border: 1px solid #dcd6cc;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-family: inherit;
   box-sizing: border-box;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   outline: none;
 }
 
@@ -179,9 +180,9 @@
   background-color: #382110;
   color: #ffffff;
   border: none;
-  padding: 9px 20px;
-  border-radius: 20px;
-  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 22px;
+  font-size: 15px;
   font-weight: 500;
   cursor: pointer;
 }
@@ -189,11 +190,11 @@
 .reviewList {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
 }
 
 .reviewCard {
-  padding-bottom: 18px;
+  padding-bottom: 20px;
   border-bottom: 1px solid #ece9e2;
 }
 
@@ -201,36 +202,36 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .reviewerName {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 16px;
   color: #382110;
 }
 
 .reviewDate {
-  font-size: 12px;
+  font-size: 14px;
   color: #706b63;
 }
 
 .reviewComment {
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 8px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 10px 0;
 }
 
 .actionRow {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
 
 .actionBtn {
   background: none;
   border: none;
   color: #00635d;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
