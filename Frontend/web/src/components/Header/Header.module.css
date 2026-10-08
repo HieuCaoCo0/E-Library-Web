@@ -1,0 +1,129 @@
+.header {
+  background-color: #f4f1ea;
+  border-bottom: 1px solid #d8d4c8;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.container {
+  max-width: 1180px;
+  height: 58px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.logo img {
+  height: 38px;
+  width: auto;
+  display: block;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navLink {
+  color: #382110;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.navLink:hover {
+  background-color: #e8e3d8;
+}
+
+.searchForm {
+  flex: 1;
+  max-width: 420px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchInput {
+  width: 100%;
+  height: 36px;
+  padding: 6px 38px 6px 14px;
+  border: 1px solid #dcd6cc;
+  border-radius: 4px;
+  background-color: #ffffff;
+  font-size: 15px;
+  color: #1e1915;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  border-color: #382110;
+  box-shadow: 0 0 0 1px #382110;
+}
+
+.searchBtn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #706b63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.searchBtn:hover {
+  color: #382110;
+}
+
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signInBtn {
+  color: #382110;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 20px;
+  transition: background-color 0.15s;
+}
+
+.signInBtn:hover {
+  background-color: #e8e3d8;
+}
+
+.registerBtn {
+  background-color: #382110;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 20px;
+  transition: opacity 0.2s;
+}
+
+.registerBtn:hover {
+  opacity: 0.9;
+}

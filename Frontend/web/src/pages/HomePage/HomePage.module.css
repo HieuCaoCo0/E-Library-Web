@@ -1,0 +1,330 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+.banner {
+  background-color: #f9f7f2;
+  border-bottom: 1px solid #ebe6dc;
+  padding: 28px 20px;
+}
+
+.bannerInner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.bannerTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  color: #382110;
+  margin: 0 0 8px 0;
+}
+
+.bannerDesc {
+  margin: 0;
+  font-size: 16px;
+  color: #55504a;
+}
+
+.mainContainer {
+  max-width: 1180px;
+  width: 100%;
+  margin: 28px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 220px 1fr 250px;
+  gap: 32px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Cột trái: Thể loại (Genres) */
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #382110;
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6e2d8;
+}
+
+.genreList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.genreItem {
+  margin-bottom: 4px;
+}
+
+.genreBtn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  font-size: 15px;
+  color: #00635d;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.genreBtn:hover {
+  background-color: #f4f1ea;
+  text-decoration: underline;
+}
+
+.genreBtnActive {
+  background-color: #f4f1ea;
+  color: #382110;
+  font-weight: 700;
+}
+
+/* Cột giữa: Danh sách sách */
+.filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.resultTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  color: #382110;
+  margin: 0;
+}
+
+.clearBtn {
+  background: none;
+  border: 1px solid #a6a6a6;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #382110;
+}
+
+.clearBtn:hover {
+  background-color: #f4f1ea;
+}
+
+.bookGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 22px;
+}
+
+.bookCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ece9e2;
+  border-radius: 6px;
+  padding: 12px;
+  background-color: #ffffff;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+
+.bookCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(56, 33, 16, 0.08);
+}
+
+.coverWrapper {
+  width: 100%;
+  height: 230px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background-color: #f4f1ea;
+}
+
+.coverImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bookTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1915;
+  text-decoration: none;
+  margin-bottom: 4px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.bookTitle:hover {
+  text-decoration: underline;
+  color: #00635d;
+}
+
+.bookAuthor {
+  font-size: 14px;
+  color: #55504a;
+  margin-bottom: 6px;
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #706b63;
+  margin-bottom: 12px;
+}
+
+.stars {
+  color: #e87400;
+  letter-spacing: 1px;
+  font-size: 14px;
+}
+
+.shelfBtn {
+  margin-top: auto;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #3f8363;
+  background-color: #409970;
+  color: #ffffff;
+  transition: background-color 0.15s;
+}
+
+.shelfBtn:hover {
+  background-color: #35825e;
+}
+
+.shelfBtnAdded {
+  background-color: #f4f1ea;
+  color: #382110;
+  border-color: #dcd6cc;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 50px 20px;
+  background-color: #faf9f6;
+  border-radius: 8px;
+  color: #706b63;
+}
+
+/* Cột phải: Tác giả nổi bật & Thử thách đọc sách */
+.authorList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.authorCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.authorAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #e8e3d8;
+  color: #382110;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.authorName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e1915;
+}
+
+.authorMeta {
+  font-size: 13px;
+  color: #706b63;
+}
+
+.challengeBox {
+  background-color: #f4f1ea;
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid #e2ddd3;
+}
+
+.challengeTitle {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #382110;
+  margin: 0 0 6px 0;
+}
+
+.challengeText {
+  font-size: 14px;
+  color: #4f4a44;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.challengeLink {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #00635d;
+  text-decoration: none;
+}
+
+.challengeLink:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  background-color: #f4f1ea;
+  border-top: 1px solid #e2ddd3;
+  padding: 24px 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #706b63;
+  margin-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .mainContainer {
+    grid-template-columns: 1fr;
+  }
+}

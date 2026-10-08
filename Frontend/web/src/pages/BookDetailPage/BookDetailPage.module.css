@@ -1,0 +1,241 @@
+.pageWrapper {
+  min-height: 100vh;
+  background-color: #ffffff;
+  color: #1e1915;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.container {
+  max-width: 1060px;
+  margin: 32px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 44px;
+}
+
+/* Cột trái: Ảnh bìa & Nút kệ sách */
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.coverImg {
+  width: 220px;
+  height: 330px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  margin-bottom: 20px;
+}
+
+.statusSelect {
+  width: 220px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 20px;
+  border: 1px solid #3f8363;
+  background-color: #409970;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+}
+
+/* Cột phải: Thông tin sách & Đánh giá */
+.bookTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  color: #1e1915;
+  margin: 0 0 8px 0;
+  line-height: 1.25;
+}
+
+.authorLink {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  color: #382110;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 14px;
+}
+
+.authorLink:hover {
+  text-decoration: underline;
+}
+
+.ratingBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #ebe6dc;
+}
+
+.stars {
+  color: #e87400;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.avgNumber {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.metaCount {
+  font-size: 14px;
+  color: #706b63;
+}
+
+.genreTag {
+  display: inline-block;
+  background-color: #f4f1ea;
+  color: #382110;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.description {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #2c2620;
+  margin-bottom: 36px;
+}
+
+/* Khu vực Đánh giá & Bình luận (UserReview - Vũ Việt Hoàng) */
+.reviewSection {
+  border-top: 1px solid #d8d4c8;
+  padding-top: 28px;
+}
+
+.sectionTitle {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 22px;
+  color: #382110;
+  margin: 0 0 18px 0;
+}
+
+.reviewForm {
+  background-color: #f9f7f2;
+  border: 1px solid #e6e2d8;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.starPicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.starBtn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.starActive {
+  color: #e87400;
+}
+
+.starInactive {
+  color: #d4cfc4;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px;
+  border: 1px solid #dcd6cc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.textarea:focus {
+  border-color: #382110;
+}
+
+.submitBtn {
+  background-color: #382110;
+  color: #ffffff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.reviewCard {
+  padding-bottom: 18px;
+  border-bottom: 1px solid #ece9e2;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.reviewerName {
+  font-weight: 700;
+  font-size: 14px;
+  color: #382110;
+}
+
+.reviewDate {
+  font-size: 12px;
+  color: #706b63;
+}
+
+.reviewComment {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.actionRow {
+  display: flex;
+  gap: 12px;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: #00635d;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.deleteBtn {
+  color: #b91c1c;
+}
