@@ -220,10 +220,10 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Test files and reports
-test*.py
-tests/
-tests.py
-*/tests.py
+# test*.py
+# tests/
+# tests.py
+# */tests.py
 *test*.sqlite3
 report.md
 Quản lý sách.md
