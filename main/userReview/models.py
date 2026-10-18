@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from customUser.models import CustomUser
 from book.models import Book
 
@@ -16,9 +17,15 @@ class UserReview(models.Model):
         related_name="reviews"
     )
 
-    rating = models.IntegerField()
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
 
     comment = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = [
@@ -27,6 +34,8 @@ class UserReview(models.Model):
                 name="unique_user_book_review"
             )
         ]
+
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.user} - {self.book} - {self.rating}"
