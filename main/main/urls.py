@@ -11,6 +11,7 @@ urlpatterns = [
     path('users/', include('customUser.urls')),
     path("books/", include("book.urls")),
     path('genres/', include('genre.urls')),
+    path('api/', include('userBookStatus.urls')),
 ]
 
 if settings.DEBUG:
