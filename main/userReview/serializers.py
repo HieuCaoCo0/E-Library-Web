@@ -31,7 +31,18 @@ class UserReviewSerializer(serializers.ModelSerializer):
 		]
 
 	def get_avatar(self, obj):
-		return getattr(obj.user, "avatar", None)
+		avatar = getattr(obj.user, "avatar", None)
+		if not avatar:
+			return None
+		if hasattr(avatar, "url"):
+			try:
+				request = self.context.get("request")
+				if request:
+					return request.build_absolute_uri(avatar.url)
+				return avatar.url
+			except ValueError:
+				return None
+		return str(avatar)
 
 	def validate_rating(self, value):
 		if not 1 <= value <= 5:

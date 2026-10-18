@@ -1,7 +1,6 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, serializers, status
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.response import Response
 
 from book.models import Book
@@ -14,7 +13,6 @@ from .services import ReviewService
 
 class BookReviewListCreateAPIView(generics.ListCreateAPIView):
 	serializer_class = UserReviewSerializer
-	authentication_classes = [BasicAuthentication]
 
 	def get_permissions(self):
 		if self.request.method == "POST":
@@ -47,7 +45,6 @@ class BookReviewListCreateAPIView(generics.ListCreateAPIView):
 class UserReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 	queryset = UserReview.objects.select_related("user", "book")
 	serializer_class = UserReviewSerializer
-	authentication_classes = [BasicAuthentication]
 	permission_classes = [IsReviewOwnerOrReadOnly]
 
 	def update(self, request, *args, **kwargs):
