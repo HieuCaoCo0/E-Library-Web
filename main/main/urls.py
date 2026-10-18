@@ -12,6 +12,7 @@ urlpatterns = [
     # API endpoints (localhost:8080/api/...)
     path('api/', include('customUser.urls')),
     path('api/', include('book.urls')),
+    path('api/', include('author.urls')),
     path('api/', include('genre.urls')),
     path('api/', include('userBookStatus.urls')),
 ]
