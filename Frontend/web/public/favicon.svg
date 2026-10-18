@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Nền vuông bo góc màu kem Goodreads -->
+  <rect width="64" height="64" rx="14" fill="#F4F1EA"/>
+  <rect x="2" y="2" width="60" height="60" rx="12" stroke="#382110" stroke-opacity="0.12" stroke-width="2"/>
+  
+  <!-- Quyển sách mở cách điệu -->
+  <path d="M14 20C14 17.7909 15.7909 16 18 16H28C30.2091 16 32 17.7909 32 20V48C32 46.3431 30.6569 45 29 45H18C15.7909 45 14 43.2091 14 41V20Z" fill="#382110"/>
+  <path d="M50 20C50 17.7909 48.2091 16 46 16H36C33.7909 16 32 17.7909 32 20V48C32 46.3431 33.3431 45 35 45H46C48.2091 45 50 43.2091 50 41V20Z" fill="#5A3A22"/>
+  
+  <!-- Dấu trang (Bookmark) màu vàng cam nổi bật -->
+  <path d="M39 16H45V30L42 27.5L39 30V16Z" fill="#D97706"/>
+  
+  <!-- Chữ E nhỏ in chìm trang bên trái -->
+  <path d="M20 25H27M20 30.5H25.5M20 36H27" stroke="#F4F1EA" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
