@@ -19,6 +19,13 @@
 2. .venv\Scripts\Activate.ps1
 3. python -m pip install --upgrade pip
 4. pip install -r requirements.txt
+```powershell
+cd E-Library-Web
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 
 ## Cách setup CSDL
 - video hướng dẫn: https://youtu.be/Oa7bpIZ6RxI?si=RY8Qvx6saUQyVfjo
@@ -29,6 +36,12 @@
 1. python magage.py makemigrations
 2. python manage.py migrate
 3. python manage.py import_data
+```powershell
+cd E-Library-Web\main
+python magage.py makemigrations
+python manage.py migrate
+python manage.py import_data
+```
 
 ## Chạy server
 
