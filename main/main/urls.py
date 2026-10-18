@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/', include('customUser.urls')),
     path('api/', include('book.urls')),
     path('api/', include('genre.urls')),
+    path('api/', include('userBookStatus.urls')),
 ]
 
 if settings.DEBUG:
