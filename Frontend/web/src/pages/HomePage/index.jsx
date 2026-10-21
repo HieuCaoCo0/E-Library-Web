@@ -1,107 +1,123 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import styles from "./HomePage.module.css";
-
-// Dữ liệu giả lập khớp với API Module 3 (Genre), Module 4 (Book), Module 2 (Author)
-const MOCK_GENRES = [
-  { id: "all", name: "All Genres", count: 6 },
-  { id: "programming", name: "Programming & Tech", count: 2 },
-  { id: "literature", name: "Vietnamese Literature", count: 2 },
-  { id: "fantasy", name: "Fantasy & Sci-Fi", count: 1 },
-  { id: "self-help", name: "Self Help & Psychology", count: 1 },
-];
-
-const MOCK_BOOKS = [
-  {
-    id: 1,
-    title: "Clean Code: A Handbook of Agile Software Craftsmanship",
-    author: "Robert C. Martin",
-    genre: "programming",
-    avg_rating: 4.8,
-    reviews_count: 342,
-    cover:
-      "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 2,
-    title: "Mắt Biếc",
-    author: "Nguyễn Nhật Ánh",
-    genre: "literature",
-    avg_rating: 4.7,
-    reviews_count: 518,
-    cover:
-      "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 3,
-    title: "Dế Mèn Phiêu Lưu Ký",
-    author: "Tô Hoài",
-    genre: "literature",
-    avg_rating: 4.9,
-    reviews_count: 610,
-    cover:
-      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 4,
-    title: "Harry Potter and the Sorcerer's Stone",
-    author: "J.K. Rowling",
-    genre: "fantasy",
-    avg_rating: 4.9,
-    reviews_count: 1240,
-    cover:
-      "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 5,
-    title: "Atomic Habits: Thay Đổi Tí Hon Hiệu Quả Bất Ngờ",
-    author: "James Clear",
-    genre: "self-help",
-    avg_rating: 4.8,
-    reviews_count: 890,
-    cover:
-      "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 6,
-    title: "The Pragmatic Programmer",
-    author: "Andrew Hunt",
-    genre: "programming",
-    avg_rating: 4.7,
-    reviews_count: 275,
-    cover:
-      "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=400&q=80",
-  },
-];
-
-const MOCK_AUTHORS = [
-  { id: 1, name: "Nguyễn Nhật Ánh", booksCount: 45 },
-  { id: 2, name: "Robert C. Martin", booksCount: 12 },
-  { id: 3, name: "J.K. Rowling", booksCount: 18 },
-  { id: 4, name: "Tô Hoài", booksCount: 32 },
-];
+import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  // Lưu danh sách ID sách đã bấm "Want to Read" (sau này nối với POST /api/user-library/)
-  const [savedBooks, setSavedBooks] = useState([2]);
+  const navigate = useNavigate();
+
+  // Danh sách thể loại từ API /api/genres/
+  const [genres, setGenres] = useState([]);
+  // Danh sách sách từ API /api/books/
+  const [books, setBooks] = useState([]);
+  const [totalBooks, setTotalBooks] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [isLoadingBooks, setIsLoadingBooks] = useState(true);
+
+  // Tác giả nổi bật từ API /api/authors/
+  const [featuredAuthors, setFeaturedAuthors] = useState([]);
+  // Danh sách ID sách trong kệ cá nhân từ API /api/user-library/
+  const [savedBooks, setSavedBooks] = useState([]);
+  const [libraryRecords, setLibraryRecords] = useState({}); // bookId -> recordId
 
   const searchKeyword = searchParams.get("search") || "";
   const selectedGenre = searchParams.get("genre") || "all";
 
-  // Lọc sách theo cả từ khóa tìm kiếm (?search=) và thể loại (?genre=)
-  const filteredBooks = MOCK_BOOKS.filter((book) => {
-    const matchGenre = selectedGenre === "all" || book.genre === selectedGenre;
-    const matchSearch =
-      !searchKeyword ||
-      book.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      book.author.toLowerCase().includes(searchKeyword.toLowerCase());
-    return matchGenre && matchSearch;
-  });
+  // 1. Lấy danh sách thể loại
+  useEffect(() => {
+    api
+      .get("/api/genres/")
+      .then((res) => {
+        const results = res.data?.results || res.data || [];
+        setGenres(results);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải thể loại:", err);
+      });
+  }, []);
 
+  // 2. Lấy danh sách tác giả nổi bật
+  useEffect(() => {
+    api
+      .get("/api/authors/")
+      .then((res) => {
+        const results = Array.isArray(res.data)
+          ? res.data.slice(0, 5)
+          : res.data?.results?.slice(0, 5) || [];
+        setFeaturedAuthors(results);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải tác giả:", err);
+      });
+  }, []);
+
+  // 3. Lấy danh sách sách của user nếu đã đăng nhập
+  const loadUserLibrary = () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setSavedBooks([]);
+      setLibraryRecords({});
+      return;
+    }
+
+    api
+      .get("/api/user-library/")
+      .then((res) => {
+        const items = res.data || [];
+        const bookIds = items.map((item) => item.book);
+        const map = {};
+        items.forEach((item) => {
+          map[item.book] = item.id;
+        });
+        setSavedBooks(bookIds);
+        setLibraryRecords(map);
+      })
+      .catch(() => {
+        // Có thể chưa đăng nhập hoặc token hết hạn
+      });
+  };
+
+  useEffect(() => {
+    loadUserLibrary();
+  }, []);
+
+  // 4. Lấy danh sách sách theo bộ lọc (?search= & ?genre= & page)
+  useEffect(() => {
+    setIsLoadingBooks(true);
+    const params = {
+      page: page,
+    };
+    if (searchKeyword.trim()) {
+      params.search = searchKeyword.trim();
+    }
+    if (selectedGenre && selectedGenre !== "all") {
+      params.genre = selectedGenre;
+    }
+
+    api
+      .get("/api/books/", { params })
+      .then((res) => {
+        setBooks(res.data.results || []);
+        setTotalBooks(res.data.count || 0);
+        setTotalPages(res.data.total_pages || 1);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải sách:", err);
+        setBooks([]);
+      })
+      .finally(() => {
+        setIsLoadingBooks(false);
+      });
+  }, [searchKeyword, selectedGenre, page]);
+
+  // Xử lý chọn thể loại
   const handleSelectGenre = (genreId) => {
+    setPage(1);
     const params = new URLSearchParams(searchParams);
     if (genreId === "all") {
       params.delete("genre");
@@ -111,12 +127,48 @@ export default function HomePage() {
     setSearchParams(params);
   };
 
-  const toggleShelf = (bookId) => {
-    setSavedBooks((prev) =>
-      prev.includes(bookId)
-        ? prev.filter((id) => id !== bookId)
-        : [...prev, bookId],
-    );
+  // Thêm/Xóa sách khỏi kệ cá nhân
+  const toggleShelf = async (bookId) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      toast.info("Vui lòng đăng nhập để lưu sách vào kệ cá nhân.");
+      navigate("/login");
+      return;
+    }
+
+    const isAdded = savedBooks.includes(bookId);
+
+    if (isAdded && libraryRecords[bookId]) {
+      // Xóa khỏi kệ
+      try {
+        await api.delete(`/api/user-library/${libraryRecords[bookId]}/`);
+        setSavedBooks((prev) => prev.filter((id) => id !== bookId));
+        setLibraryRecords((prev) => {
+          const updated = { ...prev };
+          delete updated[bookId];
+          return updated;
+        });
+        toast.info("Đã bỏ lưu cuốn sách khỏi kệ cá nhân.");
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, "Không thể xóa sách khỏi kệ."));
+      }
+    } else {
+      // Thêm vào kệ (WANT_TO_READ)
+      try {
+        const res = await api.post("/api/user-library/", {
+          book: bookId,
+          status: "WANT_TO_READ",
+        });
+        setSavedBooks((prev) => [...prev, bookId]);
+        setLibraryRecords((prev) => ({
+          ...prev,
+          [bookId]: res.data.id,
+        }));
+        toast.success("Đã thêm sách vào kệ 'Muốn đọc'!");
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, "Không thể thêm sách vào kệ."));
+      }
+    }
   };
 
   return (
@@ -131,8 +183,7 @@ export default function HomePage() {
               Meet your next favorite book.
             </h1>
             <p className={styles.bannerDesc}>
-              Khám phá kho sách, lưu vào tủ sách cá nhân và chia sẻ đánh giá
-              cùng cộng đồng E-Library.
+              Khám phá kho sách với hơn {totalBooks || 300} đầu sách chọn lọc, lưu vào tủ sách cá nhân và chia sẻ đánh giá cùng cộng đồng E-Library.
             </p>
           </div>
         </div>
@@ -144,16 +195,27 @@ export default function HomePage() {
         <aside>
           <h2 className={styles.sectionTitle}>Browse Genres</h2>
           <ul className={styles.genreList}>
-            {MOCK_GENRES.map((genre) => (
+            <li className={styles.genreItem}>
+              <button
+                onClick={() => handleSelectGenre("all")}
+                className={`${styles.genreBtn} ${
+                  selectedGenre === "all" ? styles.genreBtnActive : ""
+                }`}
+              >
+                <span>All Genres</span>
+                <span>({totalBooks})</span>
+              </button>
+            </li>
+            {genres.slice(0, 15).map((genre) => (
               <li key={genre.id} className={styles.genreItem}>
                 <button
-                  onClick={() => handleSelectGenre(genre.id)}
+                  onClick={() => handleSelectGenre(String(genre.id))}
                   className={`${styles.genreBtn} ${
-                    selectedGenre === genre.id ? styles.genreBtnActive : ""
+                    String(selectedGenre) === String(genre.id) ? styles.genreBtnActive : ""
                   }`}
                 >
                   <span>{genre.name}</span>
-                  <span>({genre.count})</span>
+                  <span>({genre.book_count})</span>
                 </button>
               </li>
             ))}
@@ -168,12 +230,18 @@ export default function HomePage() {
                 ? `Search results for "${searchKeyword}"`
                 : selectedGenre === "all"
                   ? "Popular & Featured Books"
-                  : MOCK_GENRES.find((g) => g.id === selectedGenre)?.name}
+                  : genres.find((g) => String(g.id) === String(selectedGenre))?.name || "Books"}
+              <span style={{ fontSize: "14px", fontWeight: "normal", color: "#666", marginLeft: "8px" }}>
+                ({totalBooks} books found)
+              </span>
             </h2>
 
             {(searchKeyword || selectedGenre !== "all") && (
               <button
-                onClick={() => setSearchParams({})}
+                onClick={() => {
+                  setPage(1);
+                  setSearchParams({});
+                }}
                 className={styles.clearBtn}
               >
                 Clear filters ✕
@@ -181,55 +249,117 @@ export default function HomePage() {
             )}
           </div>
 
-          {filteredBooks.length === 0 ? (
+          {isLoadingBooks ? (
+            <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+              Đang tải danh sách sách từ máy chủ...
+            </div>
+          ) : books.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>Không tìm thấy cuốn sách nào khớp với từ khóa của bạn.</p>
+              <p>Không tìm thấy cuốn sách nào khớp với yêu cầu của bạn.</p>
               <button
-                onClick={() => setSearchParams({})}
+                onClick={() => {
+                  setPage(1);
+                  setSearchParams({});
+                }}
                 className={styles.clearBtn}
               >
                 Xem tất cả sách
               </button>
             </div>
           ) : (
-            <div className={styles.bookGrid}>
-              {filteredBooks.map((book) => {
-                const isAdded = savedBooks.includes(book.id);
-                return (
-                  <div key={book.id} className={styles.bookCard}>
-                    <Link
-                      to={`/books/${book.id}`}
-                      className={styles.coverWrapper}
-                    >
-                      <img
-                        src={book.cover}
-                        alt={book.title}
-                        className={styles.coverImg}
-                      />
-                    </Link>
+            <>
+              <div className={styles.bookGrid}>
+                {books.map((book) => {
+                  const isAdded = savedBooks.includes(book.id);
+                  const ratingVal = Number(book.avg_rating || book.rating || 0).toFixed(1);
+                  const reviewsCount = book.review_count || 0;
 
-                    <Link to={`/books/${book.id}`} className={styles.bookTitle}>
-                      {book.title}
-                    </Link>
-                    <div className={styles.bookAuthor}>by {book.author}</div>
+                  return (
+                    <div key={book.id} className={styles.bookCard}>
+                      <Link
+                        to={`/books/${book.id}`}
+                        className={styles.coverWrapper}
+                      >
+                        <img
+                          src={book.cover_image || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80"}
+                          alt={book.title}
+                          className={styles.coverImg}
+                          loading="lazy"
+                        />
+                      </Link>
 
-                    <div className={styles.ratingRow}>
-                      <span className={styles.stars}>★★★★★</span>
-                      <span>
-                        {book.avg_rating} ({book.reviews_count})
-                      </span>
+                      <Link to={`/books/${book.id}`} className={styles.bookTitle}>
+                        {book.title}
+                      </Link>
+                      <div className={styles.bookAuthor}>
+                        by {book.author_id ? (
+                          <Link to={`/authors/${book.author_id}`} style={{ color: "inherit", textDecoration: "none" }}>
+                            {book.author}
+                          </Link>
+                        ) : (
+                          book.author
+                        )}
+                      </div>
+
+                      <div className={styles.ratingRow}>
+                        <span className={styles.stars}>★★★★★</span>
+                        <span>
+                          {ratingVal} ({reviewsCount})
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => toggleShelf(book.id)}
+                        className={`${styles.shelfBtn} ${isAdded ? styles.shelfBtnAdded : ""}`}
+                      >
+                        {isAdded ? "✓ In My Shelf" : "+ Want to Read"}
+                      </button>
                     </div>
+                  );
+                })}
+              </div>
 
-                    <button
-                      onClick={() => toggleShelf(book.id)}
-                      className={`${styles.shelfBtn} ${isAdded ? styles.shelfBtnAdded : ""}`}
-                    >
-                      {isAdded ? "✓ Want to Read" : "+ Want to Read"}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+              {/* Phân trang */}
+              {totalPages > 1 && (
+                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", marginTop: "32px" }}>
+                  <button
+                    disabled={page <= 1}
+                    onClick={() => {
+                      setPage((p) => Math.max(1, p - 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      border: "1px solid #d8d4c8",
+                      background: page <= 1 ? "#f4f1ea" : "#ffffff",
+                      cursor: page <= 1 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    ← Previous
+                  </button>
+                  <span style={{ fontSize: "14px", color: "#555" }}>
+                    Trang {page} / {totalPages}
+                  </span>
+                  <button
+                    disabled={page >= totalPages}
+                    onClick={() => {
+                      setPage((p) => Math.min(totalPages, p + 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "4px",
+                      border: "1px solid #d8d4c8",
+                      background: page >= totalPages ? "#f4f1ea" : "#ffffff",
+                      cursor: page >= totalPages ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
 
@@ -237,19 +367,19 @@ export default function HomePage() {
         <aside>
           <h2 className={styles.sectionTitle}>Featured Authors</h2>
           <div className={styles.authorList}>
-            {MOCK_AUTHORS.map((author) => (
+            {featuredAuthors.map((author) => (
               <Link
                 key={author.id}
                 to={`/authors/${author.id}`}
                 className={styles.authorCard}
               >
                 <div className={styles.authorAvatar}>
-                  {author.name.charAt(0)}
+                  {author.name ? author.name.charAt(0) : "A"}
                 </div>
                 <div>
                   <div className={styles.authorName}>{author.name}</div>
                   <div className={styles.authorMeta}>
-                    {author.booksCount} published books
+                    View published books →
                   </div>
                 </div>
               </Link>
@@ -260,7 +390,7 @@ export default function HomePage() {
             <h3 className={styles.challengeTitle}>My Personal Shelf</h3>
             <p className={styles.challengeText}>
               Bạn đang có <strong>{savedBooks.length} cuốn sách</strong> trong
-              danh sách muốn đọc.
+              kệ sách cá nhân.
             </p>
             <Link to="/my-books" className={styles.challengeLink}>
               Go to My Books →

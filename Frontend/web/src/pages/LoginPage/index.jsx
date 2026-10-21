@@ -1,16 +1,49 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 import styles from "./LoginPage.module.css";
 import logo from "../../assets/logo.svg";
+import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [keepSignedIn, setKeepSignedIn] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Đăng nhập với:", { email, password, keepSignedIn });
+    setErrorMsg("");
+    setIsLoading(true);
+
+    try {
+      const res = await api.post("/api/auth/login/", {
+        username: username.trim(),
+        password: password,
+      });
+
+      // Lưu JWT Token và User Profile
+      if (res.data.access) {
+        localStorage.setItem("access_token", res.data.access);
+      }
+      if (res.data.refresh) {
+        localStorage.setItem("refresh_token", res.data.refresh);
+      }
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+      }
+
+      toast.success("Đăng nhập thành công!");
+      navigate("/");
+    } catch (err) {
+      const msg = getApiErrorMessage(err, "Tên đăng nhập hoặc mật khẩu không chính xác.");
+      setErrorMsg(msg);
+      toast.error(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -22,15 +55,32 @@ export default function LoginPage() {
       <div className={styles.box}>
         <h1 className={styles.title}>Sign in</h1>
 
+        {errorMsg && (
+          <div
+            style={{
+              padding: "10px 14px",
+              marginBottom: "16px",
+              backgroundColor: "#fdf2f2",
+              color: "#c81e1e",
+              border: "1px solid #f8b4b4",
+              borderRadius: "6px",
+              fontSize: "14px",
+            }}
+          >
+            {errorMsg}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label}>Email</label>
+            <label className={styles.label}>Username or Email</label>
             <input
-              type="email"
+              type="text"
               className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
+              autoFocus
             />
           </div>
 
@@ -41,17 +91,42 @@ export default function LoginPage() {
                 Password assistance
               </a>
             </div>
-            <input
-              type="password"
-              className={styles.input}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? "text" : "password"}
+                className={styles.passwordInput}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className={styles.togglePasswordBtn}
+                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                tabIndex="-1"
+              >
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
-          <button type="submit" className={styles.btnPrimary}>
-            Sign in
+          <button
+            type="submit"
+            className={styles.btnPrimary}
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 

@@ -1,13 +1,43 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-toastify";
 import logo from "../../assets/logo.svg";
 import styles from "./Header.module.css";
-import avatar from "../../assets/avatar.png";
+import avatarDefault from "../../assets/avatar.png";
+import api from "../../plugins/axios";
 
 export default function Header() {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get("search") || "");
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setCurrentUser(JSON.parse(storedUser));
+        } catch {
+          setCurrentUser({ username: "User" });
+        }
+      } else {
+        // Lấy thông tin user profile từ API nếu chưa có trong localStorage
+        api
+          .get("/api/users/profile/")
+          .then((res) => {
+            setCurrentUser(res.data);
+            localStorage.setItem("user", JSON.stringify(res.data));
+          })
+          .catch(() => {
+            setCurrentUser({ username: "User" });
+          });
+      }
+    } else {
+      setCurrentUser(null);
+    }
+  }, []);
 
   // Đồng bộ lại ô input khi URL thay đổi (ví dụ bấm nút Xóa lọc)
   useEffect(() => {
@@ -23,6 +53,24 @@ export default function Header() {
       params.delete("search");
     }
     navigate(`/?${params.toString()}`);
+  };
+
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    try {
+      if (refreshToken) {
+        await api.post("/api/auth/logout/", { refresh: refreshToken });
+      }
+    } catch {
+      // Bỏ qua lỗi khi logout nếu token đã hết hạn
+    } finally {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      setCurrentUser(null);
+      toast.info("Đã đăng xuất thành công.");
+      navigate("/login");
+    }
   };
 
   return (
@@ -74,15 +122,34 @@ export default function Header() {
         </form>
 
         <div className={styles.rightSection}>
-          <Link to="/profile" className={styles.profileBtn} title="My Profile">
-            <img src={avatar} alt="Profile" className={styles.avatarImg} />
-          </Link>
-          <Link to="/login" className={styles.signInBtn}>
-            Sign In
-          </Link>
-          <Link to="/register" className={styles.registerBtn}>
-            Join
-          </Link>
+          {currentUser ? (
+            <>
+              <Link to="/profile" className={styles.profileBtn} title={`My Profile (${currentUser.username || ""})`}>
+                <img
+                  src={currentUser.avatar || avatarDefault}
+                  alt="Profile"
+                  className={styles.avatarImg}
+                />
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className={styles.signInBtn}
+                style={{ background: "none", border: "none", cursor: "pointer" }}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className={styles.signInBtn}>
+                Sign In
+              </Link>
+              <Link to="/register" className={styles.registerBtn}>
+                Join
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

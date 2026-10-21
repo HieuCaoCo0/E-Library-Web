@@ -1,101 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router";
 import Header from "../../components/Header";
 import styles from "./AuthorsPage.module.css";
 import Footer from "../../components/Footer";
+import api from "../../plugins/axios";
 
-// Dữ liệu giả lập 8 tác giả để test Tìm kiếm và Phân trang (GET /api/authors/?search=&page=)
-const ALL_AUTHORS = [
-  {
-    id: 1,
-    name: "Nguyễn Nhật Ánh",
-    genres: "Vietnamese Literature, Young Adult",
-    booksCount: 45,
-    avgRating: 4.8,
-    bio: "Nhà văn hiện đại được yêu thích nhất tại Việt Nam với các tác phẩm viết về tuổi học trò như Mắt Biếc, Tôi Thấy Hoa Vàng Trên Cỏ Xanh.",
-  },
-  {
-    id: 2,
-    name: "Robert C. Martin",
-    genres: "Programming, Software Engineering",
-    booksCount: 12,
-    avgRating: 4.8,
-    bio: "Kỹ sư phần mềm người Mỹ (Uncle Bob), đồng sáng lập Tuyên ngôn Agile và là tác giả bộ sách kinh điển Clean Code, Clean Architecture.",
-  },
-  {
-    id: 3,
-    name: "J.K. Rowling",
-    genres: "Fantasy, Fiction",
-    booksCount: 18,
-    avgRating: 4.9,
-    bio: "Nữ tiểu thuyết gia người Anh, tác giả của bộ truyện giả tưởng nổi tiếng toàn cầu Harry Potter với hơn 600 triệu bản in.",
-  },
-  {
-    id: 4,
-    name: "Tô Hoài",
-    genres: "Vietnamese Literature, Children",
-    booksCount: 32,
-    avgRating: 4.9,
-    bio: "Cây đại thụ của nền văn học Việt Nam hiện đại, nổi tiếng với kiệt tác văn học thiếu nhi Dế Mèn Phiêu Lưu Ký.",
-  },
-  {
-    id: 5,
-    name: "James Clear",
-    genres: "Self Help, Psychology",
-    booksCount: 5,
-    avgRating: 4.8,
-    bio: "Tác giả và diễn giả người Mỹ chuyên nghiên cứu về thói quen, ra quyết định và cải thiện bản thân với cuốn sách Atomic Habits.",
-  },
-  {
-    id: 6,
-    name: "Andrew Hunt",
-    genres: "Programming, Technology",
-    booksCount: 9,
-    avgRating: 4.7,
-    bio: "Đồng tác giả cuốn sách The Pragmatic Programmer và là một trong 17 người sáng lập Tuyên ngôn phát triển phần mềm Agile.",
-  },
-  {
-    id: 7,
-    name: "Haruki Murakami",
-    genres: "Contemporary Fiction, Magical Realism",
-    booksCount: 28,
-    avgRating: 4.6,
-    bio: "Nhà văn đương đại nổi tiếng người Nhật Bản với phong cách hiện thực huyền ảo qua Rừng Na Uy, Kafka Bên Bờ Biển.",
-  },
-  {
-    id: 8,
-    name: "Nam Cao",
-    genres: "Vietnamese Classic Literature",
-    booksCount: 24,
-    avgRating: 4.9,
-    bio: "Nhà văn hiện thực xuất sắc của văn học Việt Nam trước 1945 với các tác phẩm Chí Phèo, Lão Hạc, Đời Thừa.",
-  },
-];
-
-const ITEMS_PER_PAGE = 6; // Hiển thị 6 tác giả mỗi trang để thấy rõ nút Phân trang
+const ITEMS_PER_PAGE = 8;
 
 export default function AuthorsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [authors, setAuthors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // 1. Lọc theo tên tác giả (Mô phỏng ?search=...)
-  const filteredAuthors = ALL_AUTHORS.filter(
-    (author) =>
-      author.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      author.genres.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // Lấy danh sách tác giả từ API GET /api/authors/?search=
+  useEffect(() => {
+    setIsLoading(true);
+    const params = {};
+    if (searchTerm.trim()) {
+      params.search = searchTerm.trim();
+    }
 
-  // 2. Tính toán Phân trang (Mô phỏng ?page=...)
-  const totalPages = Math.ceil(filteredAuthors.length / ITEMS_PER_PAGE) || 1;
+    api
+      .get("/api/authors/", { params })
+      .then((res) => {
+        const list = Array.isArray(res.data) ? res.data : res.data.results || [];
+        setAuthors(list);
+      })
+      .catch((err) => {
+        console.error("Lỗi tải danh sách tác giả:", err);
+        setAuthors([]);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [searchTerm]);
+
+  const totalPages = Math.ceil(authors.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedAuthors = filteredAuthors.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE,
-  );
+  const paginatedAuthors = authors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Quay về trang 1 khi gõ tìm kiếm mới
+    setCurrentPage(1);
   };
 
   return (
@@ -108,8 +55,7 @@ export default function AuthorsPage() {
           <div>
             <h1 className={styles.pageTitle}>Authors Directory</h1>
             <p className={styles.pageSubtitle}>
-              Khám phá {filteredAuthors.length} tác giả và các đầu sách tiêu
-              biểu trong thư viện
+              Khám phá các tác giả nổi tiếng và tác phẩm trong thư viện
             </p>
           </div>
 
@@ -125,10 +71,13 @@ export default function AuthorsPage() {
         </div>
 
         {/* Danh sách tác giả */}
-        {paginatedAuthors.length === 0 ? (
+        {isLoading ? (
+          <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+            Đang tải danh sách tác giả...
+          </div>
+        ) : paginatedAuthors.length === 0 ? (
           <div className={styles.emptyState}>
-            Không tìm thấy tác giả nào có tên khớp với &ldquo;{searchTerm}
-            &rdquo;.
+            Không tìm thấy tác giả nào có tên khớp với &ldquo;{searchTerm}&rdquo;.
           </div>
         ) : (
           <>
@@ -141,7 +90,7 @@ export default function AuthorsPage() {
                         to={`/authors/${author.id}`}
                         className={styles.avatar}
                       >
-                        {author.name.charAt(0)}
+                        {author.name ? author.name.charAt(0) : "A"}
                       </Link>
                       <div>
                         <Link
@@ -151,24 +100,25 @@ export default function AuthorsPage() {
                           {author.name}
                         </Link>
                         <div className={styles.authorGenre}>
-                          {author.genres}
+                          Author ID #{author.id}
                         </div>
                       </div>
                     </div>
 
-                    <p className={styles.authorBio}>{author.bio}</p>
+                    <p className={styles.authorBio}>
+                      Tác giả được độc giả yêu mến trong hệ thống thư viện E-Library.
+                    </p>
                   </div>
 
                   <div className={styles.cardFooter}>
                     <span>
-                      📚 <strong>{author.booksCount}</strong> books • ★{" "}
-                      <strong>{author.avgRating}</strong>
+                      📚 Author in catalog
                     </span>
                     <Link
                       to={`/authors/${author.id}`}
                       className={styles.viewLink}
                     >
-                      View profile →
+                      View profile & books →
                     </Link>
                   </div>
                 </div>
@@ -179,31 +129,25 @@ export default function AuthorsPage() {
             {totalPages > 1 && (
               <div className={styles.pagination}>
                 <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => {
+                    setCurrentPage((p) => Math.max(1, p - 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   disabled={currentPage === 1}
                   className={styles.pageBtn}
                 >
                   ← Prev
                 </button>
 
-                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(
-                  (page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`${styles.pageBtn} ${
-                        currentPage === page ? styles.pageBtnActive : ""
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ),
-                )}
+                <span style={{ display: "flex", alignItems: "center", padding: "0 12px", fontSize: "14px", color: "#555" }}>
+                  Trang {currentPage} / {totalPages} ({authors.length} tác giả)
+                </span>
 
                 <button
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
+                  onClick={() => {
+                    setCurrentPage((p) => Math.min(totalPages, p + 1));
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
                   disabled={currentPage === totalPages}
                   className={styles.pageBtn}
                 >

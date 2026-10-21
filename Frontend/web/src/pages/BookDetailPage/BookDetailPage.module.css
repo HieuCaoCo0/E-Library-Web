@@ -31,6 +31,122 @@
   margin-bottom: 22px;
 }
 
+.dropdownWrapper {
+  position: relative;
+  width: 250px;
+}
+
+.dropdownTrigger {
+  width: 100%;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 22px;
+  border: 1px solid #37825d;
+  background-color: #409970;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(64, 153, 112, 0.28);
+  transition: all 0.2s ease;
+}
+
+.dropdownTrigger:hover {
+  background-color: #378662;
+  box-shadow: 0 4px 12px rgba(64, 153, 112, 0.35);
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  border: 1px solid #e0dbd1;
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12), 0 3px 8px rgba(0, 0, 0, 0.04);
+  padding: 6px;
+  z-index: 50;
+  box-sizing: border-box;
+  animation: fadeInDown 0.16s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownItem {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #382110;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.12s ease;
+  box-sizing: border-box;
+}
+
+.dropdownItem:hover {
+  background-color: #f4f1ea;
+  color: #1e1915;
+}
+
+.dropdownItemActive {
+  background-color: #eef7f2;
+  color: #2b7752;
+  font-weight: 600;
+}
+
+.dropdownItemActive:hover {
+  background-color: #e3f2eb;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background-color: #ede8df;
+  margin: 6px 0;
+}
+
+.dropdownRemoveBtn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #c81e1e;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.12s ease;
+  box-sizing: border-box;
+}
+
+.dropdownRemoveBtn:hover {
+  background-color: #fdf2f2;
+}
+
 .statusSelect {
   width: 250px;
   height: 44px;

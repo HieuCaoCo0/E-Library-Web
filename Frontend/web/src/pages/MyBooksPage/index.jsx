@@ -1,96 +1,78 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
+import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import styles from "./MyBooksPage.module.css";
 import Footer from "../../components/Footer";
-
-// Dữ liệu giả lập cho Tủ sách cá nhân (Khớp với API /api/user-library/ của Nguyễn Ngọc Huy)
-const INITIAL_SHELF_BOOKS = [
-  {
-    id: 1,
-    bookId: 1,
-    title: "Clean Code: A Handbook of Agile Software Craftsmanship",
-    authorId: 2,
-    author: "Robert C. Martin",
-    avg_rating: 4.8,
-    userRating: 5,
-    status: "reading",
-    dateAdded: "01/10/2026",
-    dateRead: "-",
-    cover:
-      "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 2,
-    bookId: 2,
-    title: "Mắt Biếc",
-    authorId: 1,
-    author: "Nguyễn Nhật Ánh",
-    avg_rating: 4.7,
-    userRating: 5,
-    status: "read",
-    dateAdded: "15/09/2026",
-    dateRead: "22/09/2026",
-    cover:
-      "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 3,
-    bookId: 3,
-    title: "Dế Mèn Phiêu Lưu Ký",
-    authorId: 4,
-    author: "Tô Hoài",
-    avg_rating: 4.9,
-    userRating: 4,
-    status: "read",
-    dateAdded: "10/09/2026",
-    dateRead: "14/09/2026",
-    cover:
-      "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 4,
-    bookId: 4,
-    title: "Harry Potter and the Sorcerer's Stone",
-    authorId: 3,
-    author: "J.K. Rowling",
-    avg_rating: 4.9,
-    userRating: 0,
-    status: "want_to_read",
-    dateAdded: "05/10/2026",
-    dateRead: "-",
-    cover:
-      "https://images.unsplash.com/photo-1618666012174-83b441c0bc76?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 5,
-    bookId: 5,
-    title: "Atomic Habits: Thay Đổi Tí Hon Hiệu Quả Bất Ngờ",
-    authorId: 5,
-    author: "James Clear",
-    avg_rating: 4.8,
-    userRating: 0,
-    status: "want_to_read",
-    dateAdded: "07/10/2026",
-    dateRead: "-",
-    cover:
-      "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=400&q=80",
-  },
-];
+import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function MyBooksPage() {
-  const [shelfItems, setShelfItems] = useState(INITIAL_SHELF_BOOKS);
+  const navigate = useNavigate();
+  const [shelfItems, setShelfItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeShelf, setActiveShelf] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState("list"); // 'list' hoặc 'grid'
+  const [viewMode, setViewMode] = useState("list");
 
-  // Đếm số lượng sách theo từng trạng thái kệ
+  const loadUserLibrary = async () => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await api.get("/api/user-library/");
+      const records = res.data || [];
+
+      // Lấy thông tin chi tiết từng cuốn sách
+      const bookPromises = records.map(async (rec) => {
+        try {
+          const bookRes = await api.get(`/api/books/${rec.book}/`);
+          const b = bookRes.data;
+          return {
+            id: rec.id,
+            bookId: rec.book,
+            title: b.title,
+            authorId: b.author_id,
+            author: b.author,
+            avg_rating: b.avg_rating || (b.rating ? Number(b.rating).toFixed(1) : "0.0"),
+            status: rec.status.toLowerCase(),
+            cover: b.cover_image || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80",
+          };
+        } catch {
+          return {
+            id: rec.id,
+            bookId: rec.book,
+            title: `Book #${rec.book}`,
+            authorId: null,
+            author: "Unknown Author",
+            avg_rating: "0.0",
+            status: rec.status.toLowerCase(),
+            cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80",
+          };
+        }
+      });
+
+      const loadedItems = await Promise.all(bookPromises);
+      setShelfItems(loadedItems);
+    } catch (err) {
+      console.error("Lỗi khi tải tủ sách:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUserLibrary();
+  }, []);
+
   const countByStatus = (status) =>
     status === "all"
       ? shelfItems.length
       : shelfItems.filter((item) => item.status === status).length;
 
-  // Lọc sách theo kệ bên trái và ô tìm kiếm bên phải
   const filteredItems = shelfItems.filter((item) => {
     const matchShelf = activeShelf === "all" || item.status === activeShelf;
     const matchQuery =
@@ -101,43 +83,71 @@ export default function MyBooksPage() {
   });
 
   // Đổi trạng thái kệ sách (PATCH /api/user-library/{id}/)
-  const handleStatusChange = (id, newStatus) => {
-    setShelfItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: newStatus,
-              dateRead: newStatus === "read" ? "08/10/2026" : "-",
-            }
-          : item,
-      ),
-    );
-  };
-
-  // Chấm sao nhanh ngay trên bảng
-  const handleRateBook = (id, rating) => {
-    setShelfItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, userRating: rating } : item,
-      ),
-    );
-  };
-
-  // Xóa sách khỏi tủ cá nhân (DELETE /api/user-library/{id}/)
-  const handleRemove = (id, title) => {
-    if (
-      window.confirm(`Bạn có chắc muốn xóa "${title}" khỏi tủ sách cá nhân?`)
-    ) {
-      setShelfItems((prev) => prev.filter((item) => item.id !== id));
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await api.patch(`/api/user-library/${id}/`, {
+        status: newStatus.toUpperCase(),
+      });
+      setShelfItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: newStatus } : item,
+        ),
+      );
+      toast.success("Đã cập nhật trạng thái sách!");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Không thể cập nhật trạng thái sách."));
     }
   };
 
-  const shelves = [
-    { key: "all", label: "All" },
-    { key: "want_to_read", label: "Want to Read" },
-    { key: "reading", label: "Currently Reading" },
+  // Xóa sách khỏi tủ sách (DELETE /api/user-library/{id}/)
+  const handleRemove = async (id, title) => {
+    if (!confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi tủ sách?`)) return;
+
+    try {
+      await api.delete(`/api/user-library/${id}/`);
+      setShelfItems((prev) => prev.filter((item) => item.id !== id));
+      toast.info("Đã xóa sách khỏi tủ sách.");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, "Không thể xóa sách khỏi tủ sách."));
+    }
+  };
+
+  const token = localStorage.getItem("access_token");
+
+  if (!token) {
+    return (
+      <div className={styles.pageWrapper}>
+        <Header />
+        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+          <h2>Bạn chưa đăng nhập</h2>
+          <p style={{ color: "#666", margin: "16px 0 24px" }}>
+            Vui lòng đăng nhập để xem và quản lý tủ sách cá nhân (My Books) của bạn.
+          </p>
+          <button
+            onClick={() => navigate("/login")}
+            style={{
+              padding: "10px 24px",
+              backgroundColor: "#382110",
+              color: "#fff",
+              border: "none",
+              borderRadius: "20px",
+              cursor: "pointer",
+              fontSize: "15px",
+            }}
+          >
+            Đi đến Đăng nhập
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const SHELVES = [
+    { key: "all", label: "All Books" },
     { key: "read", label: "Read" },
+    { key: "reading", label: "Currently Reading" },
+    { key: "want_to_read", label: "Want to Read" },
   ];
 
   return (
@@ -145,15 +155,19 @@ export default function MyBooksPage() {
       <Header />
 
       <main className={styles.container}>
-        {/* Thanh tiêu đề My Books & Công cụ lọc */}
         <div className={styles.topBar}>
-          <h1 className={styles.pageTitle}>My Books</h1>
+          <div>
+            <h1 className={styles.pageTitle}>My Books</h1>
+            <p className={styles.pageSubtitle}>
+              Quản lý danh sách sách bạn đang đọc, đã đọc hoặc dự định đọc
+            </p>
+          </div>
 
           <div className={styles.controls}>
             <input
               type="text"
-              placeholder="Search and filter my books..."
-              className={styles.shelfSearch}
+              placeholder="Search in your books..."
+              className={styles.searchInput}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -161,41 +175,43 @@ export default function MyBooksPage() {
             <div className={styles.viewToggle}>
               <button
                 onClick={() => setViewMode("list")}
-                className={`${styles.viewBtn} ${
-                  viewMode === "list" ? styles.viewBtnActive : ""
+                className={`${styles.toggleBtn} ${
+                  viewMode === "list" ? styles.toggleBtnActive : ""
                 }`}
-                title="List View"
+                title="Table view"
               >
-                ☰ List
+                ☰
               </button>
               <button
                 onClick={() => setViewMode("grid")}
-                className={`${styles.viewBtn} ${
-                  viewMode === "grid" ? styles.viewBtnActive : ""
+                className={`${styles.toggleBtn} ${
+                  viewMode === "grid" ? styles.toggleBtnActive : ""
                 }`}
-                title="Grid View"
+                title="Grid view"
               >
-                ⊞ Grid
+                ⊞
               </button>
             </div>
           </div>
         </div>
 
-        <div className={styles.layout}>
-          {/* CỘT TRÁI: Danh mục kệ sách (Bookshelves) */}
-          <aside>
+        <div className={styles.mainGrid}>
+          {/* CỘT TRÁI: Danh sách kệ sách */}
+          <aside className={styles.sidebar}>
             <h2 className={styles.sidebarTitle}>Bookshelves</h2>
             <ul className={styles.shelfList}>
-              {shelves.map((s) => (
-                <li key={s.key} className={styles.shelfItem}>
+              {SHELVES.map((shelf) => (
+                <li key={shelf.key} className={styles.shelfItem}>
                   <button
-                    onClick={() => setActiveShelf(s.key)}
-                    className={`${styles.shelfLink} ${
-                      activeShelf === s.key ? styles.shelfLinkActive : ""
+                    onClick={() => setActiveShelf(shelf.key)}
+                    className={`${styles.shelfBtn} ${
+                      activeShelf === shelf.key ? styles.shelfBtnActive : ""
                     }`}
                   >
-                    <span>{s.label}</span>
-                    <span>({countByStatus(s.key)})</span>
+                    <span>{shelf.label}</span>
+                    <span className={styles.shelfCount}>
+                      ({countByStatus(shelf.key)})
+                    </span>
                   </button>
                 </li>
               ))}
@@ -212,15 +228,18 @@ export default function MyBooksPage() {
                 • Đang đọc: <strong>{countByStatus("reading")}</strong> cuốn
               </div>
               <div>
-                • Muốn đọc: <strong>{countByStatus("want_to_read")}</strong>{" "}
-                cuốn
+                • Muốn đọc: <strong>{countByStatus("want_to_read")}</strong> cuốn
               </div>
             </div>
           </aside>
 
           {/* CỘT PHẢI: Hiển thị Bảng hoặc Lưới sách */}
           <section>
-            {filteredItems.length === 0 ? (
+            {isLoading ? (
+              <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
+                Đang tải tủ sách cá nhân...
+              </div>
+            ) : filteredItems.length === 0 ? (
               <div className={styles.emptyBox}>
                 <div>Không có cuốn sách nào trong kệ này!</div>
                 <Link to="/" className={styles.browseLink}>
@@ -235,10 +254,7 @@ export default function MyBooksPage() {
                     <th>Title</th>
                     <th>Author</th>
                     <th>Avg Rating</th>
-                    <th>My Rating</th>
                     <th>Shelves</th>
-                    <th>Date Read</th>
-                    <th>Date Added</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -263,33 +279,18 @@ export default function MyBooksPage() {
                         </Link>
                       </td>
                       <td>
-                        <Link
-                          to={`/authors/${item.authorId}`}
-                          className={styles.authorName}
-                        >
-                          {item.author}
-                        </Link>
+                        {item.authorId ? (
+                          <Link
+                            to={`/authors/${item.authorId}`}
+                            className={styles.authorName}
+                          >
+                            {item.author}
+                          </Link>
+                        ) : (
+                          item.author
+                        )}
                       </td>
                       <td className={styles.avgRating}>★ {item.avg_rating}</td>
-                      <td>
-                        <div className={styles.starGroup}>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => handleRateBook(item.id, star)}
-                              className={`${styles.starBtn} ${
-                                star <= item.userRating
-                                  ? styles.starFilled
-                                  : styles.starEmpty
-                              }`}
-                              title={`Chấm ${star} sao`}
-                            >
-                              ★
-                            </button>
-                          ))}
-                        </div>
-                      </td>
                       <td>
                         <select
                           value={item.status}
@@ -303,8 +304,6 @@ export default function MyBooksPage() {
                           <option value="read">Read</option>
                         </select>
                       </td>
-                      <td className={styles.dateCell}>{item.dateRead}</td>
-                      <td className={styles.dateCell}>{item.dateAdded}</td>
                       <td>
                         <button
                           onClick={() => handleRemove(item.id, item.title)}
