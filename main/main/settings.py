@@ -59,11 +59,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "corsheaders",  # Thư viện xử lý CORS (Cross-Origin Resource Sharing)
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Xử lý CORS - bắt buộc đứng trước CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -191,3 +193,24 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
 }
+
+# ==============================================================================
+# CẤU HÌNH CORS (Cross-Origin Resource Sharing)
+# Giúp Frontend (chạy trên port khác như 5173) gọi API mà không bị trình duyệt chặn
+# ==============================================================================
+
+# Danh sách các domain/port Frontend được phép gọi API tới Backend
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite dev server mặc định
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",  # Dự phòng nếu FE chạy bằng React cũ (Create React App)
+    "http://127.0.0.1:3000",
+]
+
+# Cho phép gửi thông tin xác thực (Credentials: Cookies, Authorization Headers...)
+CORS_ALLOW_CREDENTIALS = True
+
+# Mẹo khi phát triển (Development):
+# Nếu muốn mở toàn bộ không giới hạn port/domain thì bỏ comment dòng dưới:
+# CORS_ALLOW_ALL_ORIGINS = True
+
