@@ -37,45 +37,56 @@ export default function Header() {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    const syncUser = () => {
-      const token =
+    // 1. Khởi tạo thông tin người dùng khi nạp trang (On-Mount)
+    const hasAuth =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
+
+    if (hasAuth) {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setCurrentUser(JSON.parse(storedUser));
+        } catch {
+          setCurrentUser({ username: "User" });
+        }
+      }
+      // Đồng bộ thông tin profile khi trang vừa mở
+      api
+        .get("/api/users/profile/")
+        .then((res) => {
+          setCurrentUser(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data));
+        })
+        .catch(() => {});
+    } else {
+      setCurrentUser(null);
+    }
+
+    // 2. Chỉ phản ứng khi Đăng xuất đa tab (chuẩn Cách 2 - On-Demand)
+    const handleStorageChange = (e) => {
+      const stillHasAuth =
         localStorage.getItem("access_token") ||
         localStorage.getItem("refresh_token");
 
-      if (token) {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          try {
-            setCurrentUser(JSON.parse(storedUser));
-          } catch {
-            setCurrentUser({ username: "User" });
-          }
-        }
-        // Gọi API để đồng bộ và nếu access_token bị thiếu, axios sẽ tự động lấy lại bằng refresh_token
-        api
-          .get("/api/users/profile/")
-          .then((res) => {
-            setCurrentUser(res.data);
-            localStorage.setItem("user", JSON.stringify(res.data));
-          })
-          .catch(() => {
-            // Nếu có lỗi xác thực và refresh token cũng hỏng, axios đã xử lý auth_logout
-          });
-      } else {
+      if (!stillHasAuth) {
+        // Cả 2 token đều bị xóa (người dùng bấm Đăng xuất ở tab khác)
         setCurrentUser(null);
+      } else if (e.key === "user" && e.newValue) {
+        try {
+          setCurrentUser(JSON.parse(e.newValue));
+        } catch {
+          // ignore
+        }
       }
     };
 
-    syncUser();
-
-    window.addEventListener("auth_token_refreshed", syncUser);
     window.addEventListener("auth_logout", () => setCurrentUser(null));
-    window.addEventListener("storage", syncUser);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener("auth_token_refreshed", syncUser);
       window.removeEventListener("auth_logout", () => setCurrentUser(null));
-      window.removeEventListener("storage", syncUser);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
