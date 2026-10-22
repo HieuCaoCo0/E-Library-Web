@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 import logo from "../../assets/logo.svg";
@@ -10,20 +10,48 @@ export default function Header() {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get("search") || "");
   const [currentUser, setCurrentUser] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
 
+  // Đóng dropdown khi click ra ngoài hoặc bấm Escape
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          setCurrentUser(JSON.parse(storedUser));
-        } catch {
-          setCurrentUser({ username: "User" });
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    }
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    const syncUser = () => {
+      const token =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("refresh_token");
+
+      if (token) {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            setCurrentUser(JSON.parse(storedUser));
+          } catch {
+            setCurrentUser({ username: "User" });
+          }
         }
-      } else {
-        // Lấy thông tin user profile từ API nếu chưa có trong localStorage
+        // Gọi API để đồng bộ và nếu access_token bị thiếu, axios sẽ tự động lấy lại bằng refresh_token
         api
           .get("/api/users/profile/")
           .then((res) => {
@@ -31,12 +59,24 @@ export default function Header() {
             localStorage.setItem("user", JSON.stringify(res.data));
           })
           .catch(() => {
-            setCurrentUser({ username: "User" });
+            // Nếu có lỗi xác thực và refresh token cũng hỏng, axios đã xử lý auth_logout
           });
+      } else {
+        setCurrentUser(null);
       }
-    } else {
-      setCurrentUser(null);
-    }
+    };
+
+    syncUser();
+
+    window.addEventListener("auth_token_refreshed", syncUser);
+    window.addEventListener("auth_logout", () => setCurrentUser(null));
+    window.addEventListener("storage", syncUser);
+
+    return () => {
+      window.removeEventListener("auth_token_refreshed", syncUser);
+      window.removeEventListener("auth_logout", () => setCurrentUser(null));
+      window.removeEventListener("storage", syncUser);
+    };
   }, []);
 
   // Đồng bộ lại ô input khi URL thay đổi (ví dụ bấm nút Xóa lọc)
@@ -47,6 +87,7 @@ export default function Header() {
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
+    params.delete("page");
     if (keyword.trim()) {
       params.set("search", keyword.trim());
     } else {
@@ -91,9 +132,15 @@ export default function Header() {
             <Link to="/authors" className={styles.navLink}>
               Authors
             </Link>
-            <Link to="/admin" className={styles.navLink}>
-              Admin
-            </Link>
+            {Boolean(
+              currentUser?.is_staff ||
+                currentUser?.is_superuser ||
+                currentUser?.username === "admin"
+            ) && (
+              <Link to="/admin" className={styles.navLink}>
+                Admin
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -123,23 +170,93 @@ export default function Header() {
 
         <div className={styles.rightSection}>
           {currentUser ? (
-            <>
-              <Link to="/profile" className={styles.profileBtn} title={`My Profile (${currentUser.username || ""})`}>
-                <img
-                  src={currentUser.avatar || avatarDefault}
-                  alt="Profile"
-                  className={styles.avatarImg}
-                />
-              </Link>
+            <div className={styles.userMenuContainer} ref={menuRef}>
               <button
                 type="button"
-                onClick={handleLogout}
-                className={styles.signInBtn}
-                style={{ background: "none", border: "none", cursor: "pointer" }}
+                onClick={() => setIsMenuOpen((prev) => !prev)}
+                className={`${styles.avatarToggleBtn} ${isMenuOpen ? styles.avatarToggleBtnActive : ""}`}
+                title={`Tài khoản: ${currentUser.username || ""}`}
+                aria-label="Menu tài khoản người dùng"
+                aria-expanded={isMenuOpen}
               >
-                Sign Out
+                <img
+                  src={currentUser.avatar || avatarDefault}
+                  alt={currentUser.username || "Profile"}
+                  className={styles.avatarImg}
+                />
               </button>
-            </>
+
+              {isMenuOpen && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.userHeader}>
+                    <div className={styles.userDisplayName}>
+                      {currentUser.first_name || currentUser.last_name
+                        ? `${currentUser.first_name || ""} ${currentUser.last_name || ""}`.trim()
+                        : currentUser.username || "Thành viên"}
+                    </div>
+                    <div className={styles.userUsername}>@{currentUser.username || "user"}</div>
+                  </div>
+
+                  <div className={styles.menuDivider} />
+
+                  <Link
+                    to="/profile"
+                    className={styles.menuItem}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <span>Hồ sơ cá nhân</span>
+                  </Link>
+
+                  <Link
+                    to="/my-books"
+                    className={styles.menuItem}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                    <span>My Books</span>
+                  </Link>
+
+                  {Boolean(currentUser.is_staff || currentUser.is_superuser || currentUser.username === "admin") && (
+                    <Link
+                      to="/admin"
+                      className={styles.menuItem}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                      </svg>
+                      <span>Trang Quản trị</span>
+                    </Link>
+                  )}
+
+                  <div className={styles.menuDivider} />
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className={`${styles.menuItem} ${styles.logoutItem}`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>Đăng xuất</span>
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link to="/login" className={styles.signInBtn}>

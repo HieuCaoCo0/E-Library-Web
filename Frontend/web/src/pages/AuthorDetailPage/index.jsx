@@ -31,7 +31,9 @@ export default function AuthorDetailPage() {
 
   // Lấy danh sách kệ sách cá nhân
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) return;
 
     api
@@ -44,7 +46,9 @@ export default function AuthorDetailPage() {
   }, []);
 
   const toggleShelf = async (bookId) => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       toast.info("Bạn cần đăng nhập để lưu sách vào kệ!");
       return;
@@ -68,7 +72,17 @@ export default function AuthorDetailPage() {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px", color: "#666" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            color: "#666",
+            flex: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           Đang tải thông tin tác giả...
         </div>
         <Footer />
@@ -80,7 +94,17 @@ export default function AuthorDetailPage() {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <h2>Không tìm thấy thông tin tác giả!</h2>
           <Link to="/authors" style={{ color: "#382110", textDecoration: "underline" }}>
             Quay lại danh sách tác giả

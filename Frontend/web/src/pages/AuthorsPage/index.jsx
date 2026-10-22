@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import Header from "../../components/Header";
 import styles from "./AuthorsPage.module.css";
 import Footer from "../../components/Footer";
@@ -7,9 +7,32 @@ import api from "../../plugins/axios";
 
 const ITEMS_PER_PAGE = 8;
 
+const getPaginationItems = (current, total) => {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const pages = [1];
+  if (current > 3) {
+    pages.push("ellipsis-start");
+  }
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  if (current < total - 2) {
+    pages.push("ellipsis-end");
+  }
+  pages.push(total);
+  return pages;
+};
+
 export default function AuthorsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const rawPage = parseInt(searchParams.get("page") || "1", 10);
+  const currentPage = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
+  const searchTerm = searchParams.get("search") || "";
+
   const [authors, setAuthors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,8 +64,26 @@ export default function AuthorsPage() {
   const paginatedAuthors = authors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    const val = e.target.value;
+    const params = new URLSearchParams(searchParams);
+    params.delete("page");
+    if (val.trim()) {
+      params.set("search", val);
+    } else {
+      params.delete("search");
+    }
+    setSearchParams(params);
+  };
+
+  const handlePageChange = (newPage) => {
+    const params = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", newPage);
+    }
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -129,29 +170,43 @@ export default function AuthorsPage() {
             {totalPages > 1 && (
               <div className={styles.pagination}>
                 <button
-                  onClick={() => {
-                    setCurrentPage((p) => Math.max(1, p - 1));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  disabled={currentPage === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
                   className={styles.pageBtn}
                 >
-                  ← Prev
+                  ← Trước
                 </button>
 
-                <span style={{ display: "flex", alignItems: "center", padding: "0 12px", fontSize: "14px", color: "#555" }}>
-                  Trang {currentPage} / {totalPages} ({authors.length} tác giả)
-                </span>
+                {getPaginationItems(currentPage, totalPages).map((item, idx) => {
+                  if (typeof item === "string") {
+                    return (
+                      <span
+                        key={`ellipsis-${idx}`}
+                        style={{ padding: "0 6px", color: "#888", display: "inline-flex", alignItems: "center" }}
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+                  return (
+                    <button
+                      key={`page-${item}`}
+                      onClick={() => handlePageChange(item)}
+                      className={`${styles.pageBtn} ${
+                        item === currentPage ? styles.pageBtnActive : ""
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  );
+                })}
 
                 <button
-                  onClick={() => {
-                    setCurrentPage((p) => Math.min(totalPages, p + 1));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
                   className={styles.pageBtn}
                 >
-                  Next →
+                  Sau →
                 </button>
               </div>
             )}

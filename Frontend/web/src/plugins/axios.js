@@ -36,10 +36,78 @@ export const getApiErrorMessage = (error, fallback = "Đã xảy ra lỗi") => {
   return fallback;
 };
 
+// Kiểm tra xem trình duyệt có lưu token đăng nhập (access_token hoặc refresh_token) không
+export const getStoredToken = () => {
+  return (
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("refresh_token")
+  );
+};
+
+// Singleton promise quản lý quá trình refresh token để tránh xung đột khi nhiều request gửi cùng lúc
+let refreshPromise = null;
+
+export const refreshAuthToken = async () => {
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) return null;
+
+  // Nếu đã có 1 request đang gọi refresh API, các request khác chỉ việc tái sử dụng Promise này
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const res = await axios.post(`${API_URL}/api/auth/token/refresh/`, {
+        refresh: refreshToken,
+      });
+
+      const newAccessToken = res.data.access;
+      // Backend bật ROTATE_REFRESH_TOKENS = True nên trả về cả refresh_token mới (token cũ bị blacklist)
+      const newRefreshToken = res.data.refresh || refreshToken;
+
+      localStorage.setItem("access_token", newAccessToken);
+      localStorage.setItem("refresh_token", newRefreshToken);
+
+      // Bắn event để Header và các Component biết access_token đã được khôi phục
+      window.dispatchEvent(new Event("auth_token_refreshed"));
+
+      return newAccessToken;
+    } catch (err) {
+      console.warn("Phiên đăng nhập đã hết hạn hoặc refresh_token không hợp lệ:", err);
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user");
+      window.dispatchEvent(new Event("auth_logout"));
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
 // 1. REQUEST INTERCEPTOR: Tự động gắn Access Token vào mọi request
+// Nếu access_token bị xóa hoặc hết hạn nhưng vẫn còn refresh_token, tự động khôi phục trước khi gửi
 api.interceptors.request.use(
-  function (config) {
-    const token = localStorage.getItem("access_token");
+  async function (config) {
+    const isAuthEndpoint =
+      config?.url?.includes("/api/auth/login") ||
+      config?.url?.includes("/api/auth/token/refresh");
+
+    if (isAuthEndpoint) {
+      return config;
+    }
+
+    let token = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+
+    // Nếu không có access_token nhưng còn refresh_token: Tự động khôi phục access_token mới
+    if (!token && refreshToken) {
+      token = await refreshAuthToken();
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -47,10 +115,10 @@ api.interceptors.request.use(
   },
   function (error) {
     return Promise.reject(error);
-  },
+  }
 );
 
-// 2. RESPONSE INTERCEPTOR: Tự động gọi /api/auth/token/refresh/ khi hết hạn (401)
+// 2. RESPONSE INTERCEPTOR: Tự động gọi refresh token khi gặp 401 Unauthorized giữa chừng
 api.interceptors.response.use(
   function (response) {
     return response;
@@ -58,7 +126,6 @@ api.interceptors.response.use(
   async function (error) {
     const originalRequest = error.config;
 
-    // Không tự động redirect hay refresh nếu lỗi 401 xảy ra ngay tại API đăng nhập / làm mới token
     const isAuthEndpoint =
       originalRequest?.url?.includes("/api/auth/login") ||
       originalRequest?.url?.includes("/api/auth/token/refresh");
@@ -72,25 +139,13 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem("refresh_token");
 
       if (refreshToken) {
-        try {
-          // Gọi API làm mới token của Nguyễn Đức Tài
-          const res = await axios.post(`${API_URL}/api/auth/token/refresh/`, {
-            refresh: refreshToken,
-          });
+        const newAccessToken = await refreshAuthToken();
 
-          const newAccessToken = res.data.access;
-          localStorage.setItem("access_token", newAccessToken);
-
-          // Gắn lại token mới và gửi lại request vừa bị lỗi
+        if (newAccessToken) {
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return api(originalRequest);
-        } catch (refreshError) {
-          // Nếu cả refresh_token cũng hết hạn thì mới xóa sạch và đưa về /login
-          console.warn("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+        } else {
           window.location.href = "/login";
-          return Promise.reject(refreshError);
         }
       } else {
         localStorage.removeItem("access_token");
@@ -99,7 +154,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

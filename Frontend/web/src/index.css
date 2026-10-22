@@ -48,12 +48,21 @@
   box-sizing: border-box;
 }
 
+html,
 body {
+  height: 100%;
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
   background-color: #ffffff;
   color: #1e1915;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 body,

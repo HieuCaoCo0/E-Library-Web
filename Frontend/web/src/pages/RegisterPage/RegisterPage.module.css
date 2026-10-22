@@ -155,11 +155,14 @@
 }
 
 .footer {
-  margin-top: 56px;
+  margin-top: auto;
+  padding-top: 40px;
   padding-bottom: 30px;
   text-align: center;
   font-size: 15px;
   color: #707070;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .footerLinks {

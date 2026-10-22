@@ -21,7 +21,9 @@ export default function ProfilePage() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const loadProfile = () => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       setIsLoading(false);
       return;
@@ -49,6 +51,10 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadProfile();
+    window.addEventListener("auth_token_refreshed", loadProfile);
+    return () => {
+      window.removeEventListener("auth_token_refreshed", loadProfile);
+    };
   }, []);
 
   // Xử lý upload avatar (multipart/form-data)
@@ -97,13 +103,25 @@ export default function ProfilePage() {
     }
   };
 
-  const token = localStorage.getItem("access_token");
+  const token =
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("refresh_token");
 
   if (!token) {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <h2>Bạn chưa đăng nhập</h2>
           <p style={{ color: "#666", margin: "16px 0 24px" }}>
             Vui lòng đăng nhập để xem và quản lý hồ sơ cá nhân của bạn.
@@ -132,7 +150,17 @@ export default function ProfilePage() {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px", color: "#666" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            color: "#666",
+            flex: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           Đang tải thông tin hồ sơ...
         </div>
         <Footer />

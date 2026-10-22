@@ -89,7 +89,9 @@ export default function BookDetailPage() {
 
   // 3. Kiểm tra trạng thái kệ sách hiện tại của user cho cuốn sách này
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) return;
 
     api
@@ -107,7 +109,9 @@ export default function BookDetailPage() {
 
   // Xử lý thay đổi trạng thái đọc
   const handleShelfChange = async (newStatus) => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       toast.info("Vui lòng đăng nhập để lưu trạng thái đọc.");
       navigate("/login");
@@ -161,7 +165,9 @@ export default function BookDetailPage() {
     e.preventDefault();
     if (!myComment.trim()) return;
 
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       toast.info("Vui lòng đăng nhập để viết đánh giá.");
       navigate("/login");
@@ -220,7 +226,17 @@ export default function BookDetailPage() {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px", color: "#666" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            color: "#666",
+            flex: 1,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           Đang tải thông tin cuốn sách...
         </div>
         <Footer />
@@ -232,7 +248,17 @@ export default function BookDetailPage() {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <h2>Không tìm thấy cuốn sách này!</h2>
           <Link to="/" style={{ color: "#382110", textDecoration: "underline" }}>
             Quay lại trang chủ

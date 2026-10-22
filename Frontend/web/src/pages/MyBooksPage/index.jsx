@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import styles from "./MyBooksPage.module.css";
@@ -8,14 +8,27 @@ import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function MyBooksPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [shelfItems, setShelfItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeShelf, setActiveShelf] = useState("all");
+  const activeShelf = searchParams.get("shelf") || "all";
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("list");
 
+  const handleShelfChange = (key) => {
+    const params = new URLSearchParams(searchParams);
+    if (key === "all") {
+      params.delete("shelf");
+    } else {
+      params.set("shelf", key);
+    }
+    setSearchParams(params);
+  };
+
   const loadUserLibrary = async () => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       setIsLoading(false);
       return;
@@ -66,6 +79,10 @@ export default function MyBooksPage() {
 
   useEffect(() => {
     loadUserLibrary();
+    window.addEventListener("auth_token_refreshed", loadUserLibrary);
+    return () => {
+      window.removeEventListener("auth_token_refreshed", loadUserLibrary);
+    };
   }, []);
 
   const countByStatus = (status) =>
@@ -112,13 +129,25 @@ export default function MyBooksPage() {
     }
   };
 
-  const token = localStorage.getItem("access_token");
+  const token =
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("refresh_token");
 
   if (!token) {
     return (
       <div className={styles.pageWrapper}>
         <Header />
-        <div style={{ textAlign: "center", padding: "80px 20px" }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <h2>Bạn chưa đăng nhập</h2>
           <p style={{ color: "#666", margin: "16px 0 24px" }}>
             Vui lòng đăng nhập để xem và quản lý tủ sách cá nhân (My Books) của bạn.
@@ -167,7 +196,7 @@ export default function MyBooksPage() {
             <input
               type="text"
               placeholder="Search in your books..."
-              className={styles.searchInput}
+              className={styles.shelfSearch}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -175,8 +204,8 @@ export default function MyBooksPage() {
             <div className={styles.viewToggle}>
               <button
                 onClick={() => setViewMode("list")}
-                className={`${styles.toggleBtn} ${
-                  viewMode === "list" ? styles.toggleBtnActive : ""
+                className={`${styles.viewBtn} ${
+                  viewMode === "list" ? styles.viewBtnActive : ""
                 }`}
                 title="Table view"
               >
@@ -184,8 +213,8 @@ export default function MyBooksPage() {
               </button>
               <button
                 onClick={() => setViewMode("grid")}
-                className={`${styles.toggleBtn} ${
-                  viewMode === "grid" ? styles.toggleBtnActive : ""
+                className={`${styles.viewBtn} ${
+                  viewMode === "grid" ? styles.viewBtnActive : ""
                 }`}
                 title="Grid view"
               >
@@ -195,7 +224,7 @@ export default function MyBooksPage() {
           </div>
         </div>
 
-        <div className={styles.mainGrid}>
+        <div className={styles.layout}>
           {/* CỘT TRÁI: Danh sách kệ sách */}
           <aside className={styles.sidebar}>
             <h2 className={styles.sidebarTitle}>Bookshelves</h2>
@@ -203,9 +232,9 @@ export default function MyBooksPage() {
               {SHELVES.map((shelf) => (
                 <li key={shelf.key} className={styles.shelfItem}>
                   <button
-                    onClick={() => setActiveShelf(shelf.key)}
-                    className={`${styles.shelfBtn} ${
-                      activeShelf === shelf.key ? styles.shelfBtnActive : ""
+                    onClick={() => handleShelfChange(shelf.key)}
+                    className={`${styles.shelfLink} ${
+                      activeShelf === shelf.key ? styles.shelfLinkActive : ""
                     }`}
                   >
                     <span>{shelf.label}</span>

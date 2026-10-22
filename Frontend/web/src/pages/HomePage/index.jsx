@@ -6,6 +6,26 @@ import Footer from "../../components/Footer";
 import styles from "./HomePage.module.css";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
+function getPaginationItems(current, total) {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const pages = [1];
+  if (current > 3) {
+    pages.push("ellipsis-start");
+  }
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+  if (current < total - 2) {
+    pages.push("ellipsis-end");
+  }
+  pages.push(total);
+  return pages;
+}
+
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -16,7 +36,6 @@ export default function HomePage() {
   const [books, setBooks] = useState([]);
   const [totalBooks, setTotalBooks] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
   // Tác giả nổi bật từ API /api/authors/
@@ -27,6 +46,8 @@ export default function HomePage() {
 
   const searchKeyword = searchParams.get("search") || "";
   const selectedGenre = searchParams.get("genre") || "all";
+  const rawPage = parseInt(searchParams.get("page") || "1", 10);
+  const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
 
   // 1. Lấy danh sách thể loại
   useEffect(() => {
@@ -58,7 +79,9 @@ export default function HomePage() {
 
   // 3. Lấy danh sách sách của user nếu đã đăng nhập
   const loadUserLibrary = () => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       setSavedBooks([]);
       setLibraryRecords({});
@@ -84,6 +107,14 @@ export default function HomePage() {
 
   useEffect(() => {
     loadUserLibrary();
+    window.addEventListener("auth_token_refreshed", loadUserLibrary);
+    window.addEventListener("auth_logout", () => {
+      setSavedBooks([]);
+      setLibraryRecords({});
+    });
+    return () => {
+      window.removeEventListener("auth_token_refreshed", loadUserLibrary);
+    };
   }, []);
 
   // 4. Lấy danh sách sách theo bộ lọc (?search= & ?genre= & page)
@@ -115,10 +146,22 @@ export default function HomePage() {
       });
   }, [searchKeyword, selectedGenre, page]);
 
-  // Xử lý chọn thể loại
-  const handleSelectGenre = (genreId) => {
-    setPage(1);
+  // Xử lý chuyển trang qua URL (?page=X)
+  const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      params.delete("page");
+    } else {
+      params.set("page", newPage);
+    }
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Xử lý chọn thể loại (luôn reset về trang 1)
+  const handleSelectGenre = (genreId) => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("page");
     if (genreId === "all") {
       params.delete("genre");
     } else {
@@ -129,7 +172,9 @@ export default function HomePage() {
 
   // Thêm/Xóa sách khỏi kệ cá nhân
   const toggleShelf = async (bookId) => {
-    const token = localStorage.getItem("access_token");
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
     if (!token) {
       toast.info("Vui lòng đăng nhập để lưu sách vào kệ cá nhân.");
       navigate("/login");
@@ -238,10 +283,7 @@ export default function HomePage() {
 
             {(searchKeyword || selectedGenre !== "all") && (
               <button
-                onClick={() => {
-                  setPage(1);
-                  setSearchParams({});
-                }}
+                onClick={() => setSearchParams({})}
                 className={styles.clearBtn}
               >
                 Clear filters ✕
@@ -257,10 +299,7 @@ export default function HomePage() {
             <div className={styles.emptyState}>
               <p>Không tìm thấy cuốn sách nào khớp với yêu cầu của bạn.</p>
               <button
-                onClick={() => {
-                  setPage(1);
-                  setSearchParams({});
-                }}
+                onClick={() => setSearchParams({})}
                 className={styles.clearBtn}
               >
                 Xem tất cả sách
@@ -319,40 +358,90 @@ export default function HomePage() {
                 })}
               </div>
 
-              {/* Phân trang */}
+              {/* Phân trang URL (?page=X) */}
               {totalPages > 1 && (
-                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", marginTop: "32px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginTop: "36px",
+                    flexWrap: "wrap",
+                  }}
+                >
                   <button
                     disabled={page <= 1}
-                    onClick={() => {
-                      setPage((p) => Math.max(1, p - 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
+                    onClick={() => handlePageChange(page - 1)}
                     style={{
-                      padding: "8px 16px",
-                      borderRadius: "4px",
+                      padding: "8px 14px",
+                      borderRadius: "6px",
                       border: "1px solid #d8d4c8",
                       background: page <= 1 ? "#f4f1ea" : "#ffffff",
+                      color: page <= 1 ? "#999" : "#382110",
                       cursor: page <= 1 ? "not-allowed" : "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
                     }}
                   >
                     ← Previous
                   </button>
-                  <span style={{ fontSize: "14px", color: "#555" }}>
-                    Trang {page} / {totalPages}
-                  </span>
+
+                  {getPaginationItems(page, totalPages).map((item, idx) => {
+                    if (typeof item === "string") {
+                      return (
+                        <span
+                          key={`dots-${idx}`}
+                          style={{
+                            padding: "0 6px",
+                            color: "#888",
+                            fontSize: "14px",
+                          }}
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isCurrent = item === page;
+                    return (
+                      <button
+                        key={`page-${item}`}
+                        onClick={() => handlePageChange(item)}
+                        style={{
+                          minWidth: "36px",
+                          height: "36px",
+                          padding: "0 8px",
+                          borderRadius: "6px",
+                          border: isCurrent ? "1px solid #382110" : "1px solid #d8d4c8",
+                          background: isCurrent ? "#382110" : "#ffffff",
+                          color: isCurrent ? "#ffffff" : "#382110",
+                          cursor: "pointer",
+                          fontWeight: isCurrent ? "700" : "500",
+                          fontSize: "14px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.12s",
+                        }}
+                      >
+                        {item}
+                      </button>
+                    );
+                  })}
+
                   <button
                     disabled={page >= totalPages}
-                    onClick={() => {
-                      setPage((p) => Math.min(totalPages, p + 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
+                    onClick={() => handlePageChange(page + 1)}
                     style={{
-                      padding: "8px 16px",
-                      borderRadius: "4px",
+                      padding: "8px 14px",
+                      borderRadius: "6px",
                       border: "1px solid #d8d4c8",
                       background: page >= totalPages ? "#f4f1ea" : "#ffffff",
+                      color: page >= totalPages ? "#999" : "#382110",
                       cursor: page >= totalPages ? "not-allowed" : "pointer",
+                      fontSize: "14px",
+                      fontWeight: "500",
                     }}
                   >
                     Next →
