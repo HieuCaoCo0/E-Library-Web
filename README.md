@@ -1,5 +1,20 @@
 # E-Library-Web
 
+## Hướng dẫn chạy web
+1. Khởi chạy server Django:
+```powershell
+cd E-Library-Web
+cd main
+python manage.py runserver
+```
+2. Cài đặt và chạy container Frontend:
+```powershell
+cd E-Library-Web
+cd Frontend
+docker compose up -d
+docker compose logs -f web  
+```
+3. Link local web: http://localhost:5173/
 ## Hướng dẫn sử dụng github
 1. fork repo
 2. tải git https://git-scm.com/install/
@@ -15,10 +30,6 @@
 4. tạo pull request
 ## Cách setup môi trường
 - chạy các lệnh sau trong cmd:
-1. python -m venv .venv
-2. .venv\Scripts\Activate.ps1
-3. python -m pip install --upgrade pip
-4. pip install -r requirements.txt
 ```powershell
 cd E-Library-Web
 python -m venv .venv
