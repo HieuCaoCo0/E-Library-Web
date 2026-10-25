@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "book",
     "userBookStatus",
     "userReview",
+    "recommendation",
     # "auth",
     "dataScraper.apps.DataScraperConfig",
 
