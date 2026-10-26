@@ -51,7 +51,7 @@ export default function AuthorsPage() {
         setAuthors(list);
       })
       .catch((err) => {
-        console.error("Lỗi tải danh sách tác giả:", err);
+        console.error("Failed to load authors:", err);
         setAuthors([]);
       })
       .finally(() => {
@@ -91,12 +91,12 @@ export default function AuthorsPage() {
       <Header />
 
       <main className={styles.container}>
-        {/* Tiêu đề & Ô tìm kiếm tên tác giả */}
+        {/* Header & Author Search Input */}
         <div className={styles.topBar}>
           <div>
             <h1 className={styles.pageTitle}>Authors Directory</h1>
             <p className={styles.pageSubtitle}>
-              Khám phá các tác giả nổi tiếng và tác phẩm trong thư viện
+              Discover renowned authors and their published works in the library
             </p>
           </div>
 
@@ -111,14 +111,14 @@ export default function AuthorsPage() {
           </div>
         </div>
 
-        {/* Danh sách tác giả */}
+        {/* Authors List */}
         {isLoading ? (
           <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-            Đang tải danh sách tác giả...
+            Loading authors directory...
           </div>
         ) : paginatedAuthors.length === 0 ? (
           <div className={styles.emptyState}>
-            Không tìm thấy tác giả nào có tên khớp với &ldquo;{searchTerm}&rdquo;.
+            No authors found matching &ldquo;{searchTerm}&rdquo;.
           </div>
         ) : (
           <>
@@ -147,7 +147,7 @@ export default function AuthorsPage() {
                     </div>
 
                     <p className={styles.authorBio}>
-                      Tác giả được độc giả yêu mến trong hệ thống thư viện E-Library.
+                      A beloved author among readers in the E-Library catalog.
                     </p>
                   </div>
 
@@ -166,7 +166,7 @@ export default function AuthorsPage() {
               ))}
             </div>
 
-            {/* Thanh Phân trang (Pagination) */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className={styles.pagination}>
                 <button
@@ -174,7 +174,7 @@ export default function AuthorsPage() {
                   disabled={currentPage <= 1}
                   className={styles.pageBtn}
                 >
-                  ← Trước
+                  ← Previous
                 </button>
 
                 {getPaginationItems(currentPage, totalPages).map((item, idx) => {
@@ -206,7 +206,7 @@ export default function AuthorsPage() {
                   disabled={currentPage >= totalPages}
                   className={styles.pageBtn}
                 >
-                  Sau →
+                  Next →
                 </button>
               </div>
             )}

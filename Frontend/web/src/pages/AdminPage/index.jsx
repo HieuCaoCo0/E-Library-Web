@@ -7,7 +7,7 @@ import Modal from "../../components/Modal";
 import styles from "./AdminPage.module.css";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
-// Helper tạo danh sách số trang rút gọn
+// Helper to generate compact pagination items
 function getPaginationItems(current, total) {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -31,7 +31,7 @@ function getPaginationItems(current, total) {
 export default function AdminPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Đọc tab, page và search trực tiếp từ URL Query Parameters
+  // Read tab, page, and search directly from URL query parameters
   const activeTab = searchParams.get("tab") || "books"; // 'books' | 'authors' | 'genres'
   const rawPage = parseInt(searchParams.get("page") || "1", 10);
   const currentPage = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
@@ -52,19 +52,19 @@ export default function AdminPage() {
     return Boolean(token);
   });
 
-  // Trạng thái đóng/mở Popup Modal cho 3 chức năng
+  // Modal open/close state for the 3 management tabs
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
-  // Ô input tìm kiếm tạm thời trước khi bấm nút Tìm kiếm
+  // Local search input state before submitting
   const [searchInput, setSearchInput] = useState(activeSearch);
 
   useEffect(() => {
     setSearchInput(activeSearch);
   }, [activeSearch, activeTab]);
 
-  // Chuyển Tab (Cập nhật ?tab=... trên URL, reset page và search)
+  // Switch Tab (updates ?tab=... on URL, resets page and search)
   const handleTabChange = (newTab) => {
     const params = new URLSearchParams();
     if (newTab !== "books") {
@@ -73,7 +73,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // Chuyển Trang (Cập nhật ?page=... trên URL)
+  // Change Page (updates ?page=... on URL)
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     if (newPage <= 1) {
@@ -85,7 +85,7 @@ export default function AdminPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Tìm kiếm (Cập nhật ?search=... trên URL, reset về trang 1)
+  // Submit Search (updates ?search=... on URL, resets to page 1)
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
@@ -98,7 +98,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // Xóa lọc tìm kiếm
+  // Clear search filter
   const handleClearSearch = () => {
     setSearchInput("");
     const params = new URLSearchParams(searchParams);
@@ -107,7 +107,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // 1. Kiểm tra tài khoản hiện tại & quyền Admin
+  // 1. Check current account & Admin permissions
   useEffect(() => {
     const token =
       localStorage.getItem("access_token") ||
@@ -125,7 +125,7 @@ export default function AdminPage() {
         localStorage.setItem("user", JSON.stringify(res.data));
       })
       .catch(() => {
-        // Token không hợp lệ
+        // Invalid token
       })
       .finally(() => {
         setIsCheckingAuth(false);
@@ -139,29 +139,29 @@ export default function AdminPage() {
   );
 
   // -------------------------------------------------------------
-  // DỮ LIỆU TỔNG QUAN: TÁC GIẢ & THỂ LOẠI (Dùng cho cả dropdown và Tab)
+  // OVERVIEW DATA: AUTHORS & GENRES (Used for dropdowns and tabs)
   // -------------------------------------------------------------
   const [allAuthors, setAllAuthors] = useState([]);
   const [allGenresList, setAllGenresList] = useState([]);
 
-  // Lấy toàn bộ danh sách tác giả (API /api/authors/)
+  // Fetch all authors (API /api/authors/)
   const fetchAllAuthors = async () => {
     try {
       const res = await api.get("/api/authors/");
       setAllAuthors(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("Lỗi khi tải danh sách tác giả:", err);
+      console.error("Failed to load authors:", err);
     }
   };
 
-  // Lấy danh sách thể loại dùng cho việc chọn thể loại khi thêm/sửa sách
+  // Fetch genres list for book genre picker
   const fetchAllGenresForPicker = async () => {
     try {
       const res = await api.get("/api/genres/?page=1");
       const list = res.data?.results || res.data || [];
       setAllGenresList(list);
     } catch (err) {
-      console.error("Lỗi khi tải danh mục thể loại:", err);
+      console.error("Failed to load genres:", err);
     }
   };
 
@@ -173,7 +173,7 @@ export default function AdminPage() {
   }, [isAdmin]);
 
   // -------------------------------------------------------------
-  // 1. QUẢN LÝ SÁCH (POST/PUT/DELETE /api/books/)
+  // 1. BOOKS MANAGEMENT (POST/PUT/DELETE /api/books/)
   // -------------------------------------------------------------
   const [books, setBooks] = useState([]);
   const [bookTotalCount, setBookTotalCount] = useState(0);
@@ -207,7 +207,7 @@ export default function AdminPage() {
       setBookTotalCount(res.data?.count || 0);
       setBookTotalPages(res.data?.total_pages || 1);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể tải danh sách sách"));
+      toast.error(getApiErrorMessage(err, "Unable to load books list"));
     } finally {
       setIsLoadingBooks(false);
     }
@@ -219,7 +219,7 @@ export default function AdminPage() {
     }
   }, [isAdmin, activeTab, currentPage, activeSearch]);
 
-  // Toggle chọn/bỏ chọn thể loại cho sách
+  // Toggle genre selection for book
   const handleToggleGenre = (genreId) => {
     const current = bookForm.genres || [];
     if (current.includes(genreId)) {
@@ -235,7 +235,7 @@ export default function AdminPage() {
     }
   };
 
-  // Bắt đầu chỉnh sửa sách (mở Popup)
+  // Start editing book (open modal)
   const handleStartEditBook = (book) => {
     setBookForm({
       id: book.id,
@@ -251,12 +251,12 @@ export default function AdminPage() {
     setIsBookModalOpen(true);
   };
 
-  // Lưu Sách (Thêm mới POST hoặc Cập nhật PUT)
+  // Save book (POST or PUT)
   const handleSaveBook = async (e) => {
     e.preventDefault();
 
     if (!bookForm.author) {
-      toast.warning("Vui lòng chọn Tác giả cho cuốn sách!");
+      toast.warning("Please select an author for the book!");
       return;
     }
 
@@ -276,42 +276,42 @@ export default function AdminPage() {
     try {
       if (bookForm.id) {
         await api.put(`/api/books/${bookForm.id}/`, payload);
-        toast.success(`Cập nhật thành công cuốn sách "${payload.title}"!`);
+        toast.success(`Successfully updated book "${payload.title}"!`);
       } else {
         await api.post("/api/books/", payload);
-        toast.success(`Thêm mới thành công cuốn sách "${payload.title}"!`);
+        toast.success(`Successfully created book "${payload.title}"!`);
       }
       setIsBookModalOpen(false);
       setBookForm(initialBookForm);
       fetchBooks(currentPage, activeSearch);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Lỗi khi lưu thông tin sách"));
+      toast.error(getApiErrorMessage(err, "Failed to save book details"));
     } finally {
       setIsSubmittingBook(false);
     }
   };
 
-  // Xóa Sách (DELETE /api/books/<id>/)
+  // Delete book (DELETE /api/books/<id>/)
   const handleDeleteBook = async (book) => {
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa cuốn sách "${book.title}" (ID: #${book.id}) khỏi hệ thống? Thao tác này không thể hoàn tác.`
+      `Are you sure you want to delete "${book.title}" (ID: #${book.id})? This action cannot be undone.`
     );
     if (!confirmed) return;
 
     try {
       await api.delete(`/api/books/${book.id}/`);
-      toast.success(`Đã xóa thành công cuốn sách "${book.title}"!`);
+      toast.success(`Successfully deleted book "${book.title}"!`);
       if (bookForm.id === book.id) {
         setBookForm(initialBookForm);
       }
       fetchBooks(currentPage, activeSearch);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa cuốn sách"));
+      toast.error(getApiErrorMessage(err, "Unable to delete book"));
     }
   };
 
   // -------------------------------------------------------------
-  // 2. QUẢN LÝ TÁC GIẢ (POST/PUT/DELETE /api/authors/)
+  // 2. AUTHORS MANAGEMENT (POST/PUT/DELETE /api/authors/)
   // -------------------------------------------------------------
   const authorsPerPage = 12;
   const [isSubmittingAuthor, setIsSubmittingAuthor] = useState(false);
@@ -319,7 +319,7 @@ export default function AdminPage() {
   const initialAuthorForm = { id: null, name: "" };
   const [authorForm, setAuthorForm] = useState(initialAuthorForm);
 
-  // Lọc tác giả theo từ khóa
+  // Filter authors by search keyword
   const filteredAuthors = allAuthors.filter((a) =>
     activeSearch ? a.name.toLowerCase().includes(activeSearch.toLowerCase()) : true
   );
@@ -333,13 +333,13 @@ export default function AdminPage() {
     currentPage * authorsPerPage
   );
 
-  // Bắt đầu chỉnh sửa tác giả (mở Popup)
+  // Start editing author (open modal)
   const handleStartEditAuthor = (author) => {
     setAuthorForm({ id: author.id, name: author.name });
     setIsAuthorModalOpen(true);
   };
 
-  // Lưu Tác giả (POST /api/authors/ hoặc PUT /api/authors/<id>/)
+  // Save Author (POST /api/authors/ or PUT /api/authors/<id>/)
   const handleSaveAuthor = async (e) => {
     e.preventDefault();
     if (!authorForm.name.trim()) return;
@@ -350,42 +350,42 @@ export default function AdminPage() {
     try {
       if (authorForm.id) {
         await api.put(`/api/authors/${authorForm.id}/`, payload);
-        toast.success(`Cập nhật tác giả "${payload.name}" thành công!`);
+        toast.success(`Successfully updated author "${payload.name}"!`);
       } else {
         await api.post("/api/authors/", payload);
-        toast.success(`Thêm mới tác giả "${payload.name}" thành công!`);
+        toast.success(`Successfully created author "${payload.name}"!`);
       }
       setIsAuthorModalOpen(false);
       setAuthorForm(initialAuthorForm);
       await fetchAllAuthors();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Lỗi khi lưu tác giả"));
+      toast.error(getApiErrorMessage(err, "Failed to save author"));
     } finally {
       setIsSubmittingAuthor(false);
     }
   };
 
-  // Xóa Tác giả (DELETE /api/authors/<id>/)
+  // Delete Author (DELETE /api/authors/<id>/)
   const handleDeleteAuthor = async (author) => {
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa tác giả "${author.name}" (ID: #${author.id})? Lưu ý: Nếu tác giả đang liên kết với sách, thao tác có thể bị từ chối.`
+      `Are you sure you want to delete author "${author.name}" (ID: #${author.id})? Note: If this author has linked books, the action may be rejected.`
     );
     if (!confirmed) return;
 
     try {
       await api.delete(`/api/authors/${author.id}/`);
-      toast.success(`Đã xóa tác giả "${author.name}"!`);
+      toast.success(`Successfully deleted author "${author.name}"!`);
       if (authorForm.id === author.id) {
         setAuthorForm(initialAuthorForm);
       }
       await fetchAllAuthors();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa tác giả"));
+      toast.error(getApiErrorMessage(err, "Unable to delete author"));
     }
   };
 
   // -------------------------------------------------------------
-  // 3. QUẢN LÝ THỂ LOẠI (POST/PUT/DELETE /api/genres/)
+  // 3. GENRES MANAGEMENT (POST/PUT/DELETE /api/genres/)
   // -------------------------------------------------------------
   const [genres, setGenres] = useState([]);
   const [genreTotalCount, setGenreTotalCount] = useState(0);
@@ -411,7 +411,7 @@ export default function AdminPage() {
       const totalP = res.data?.count ? Math.ceil(res.data.count / 20) : 1;
       setGenreTotalPages(totalP);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể tải danh sách thể loại"));
+      toast.error(getApiErrorMessage(err, "Unable to load genres list"));
     } finally {
       setIsLoadingGenres(false);
     }
@@ -423,13 +423,13 @@ export default function AdminPage() {
     }
   }, [isAdmin, activeTab, currentPage, activeSearch]);
 
-  // Bắt đầu chỉnh sửa thể loại (mở Popup)
+  // Start editing genre (open modal)
   const handleStartEditGenre = (genre) => {
     setGenreForm({ id: genre.id, name: genre.name });
     setIsGenreModalOpen(true);
   };
 
-  // Lưu Thể loại (POST /api/genres/ hoặc PUT /api/genres/<id>/)
+  // Save Genre (POST /api/genres/ or PUT /api/genres/<id>/)
   const handleSaveGenre = async (e) => {
     e.preventDefault();
     if (!genreForm.name.trim()) return;
@@ -440,39 +440,39 @@ export default function AdminPage() {
     try {
       if (genreForm.id) {
         await api.put(`/api/genres/${genreForm.id}/`, payload);
-        toast.success(`Cập nhật thể loại "${payload.name}" thành công!`);
+        toast.success(`Successfully updated genre "${payload.name}"!`);
       } else {
         await api.post("/api/genres/", payload);
-        toast.success(`Thêm mới thể loại "${payload.name}" thành công!`);
+        toast.success(`Successfully created genre "${payload.name}"!`);
       }
       setIsGenreModalOpen(false);
       setGenreForm(initialGenreForm);
       fetchGenres(currentPage, activeSearch);
       fetchAllGenresForPicker();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Lỗi khi lưu thể loại"));
+      toast.error(getApiErrorMessage(err, "Failed to save genre"));
     } finally {
       setIsSubmittingGenre(false);
     }
   };
 
-  // Xóa Thể loại (DELETE /api/genres/<id>/)
+  // Delete Genre (DELETE /api/genres/<id>/)
   const handleDeleteGenre = async (genre) => {
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa thể loại "${genre.name}" (ID: #${genre.id})? Lưu ý: Nếu có sách thuộc thể loại này, liên kết sẽ được gỡ bỏ.`
+      `Are you sure you want to delete genre "${genre.name}" (ID: #${genre.id})? Note: Linked books will have this genre removed.`
     );
     if (!confirmed) return;
 
     try {
       await api.delete(`/api/genres/${genre.id}/`);
-      toast.success(`Đã xóa thể loại "${genre.name}"!`);
+      toast.success(`Successfully deleted genre "${genre.name}"!`);
       if (genreForm.id === genre.id) {
         setGenreForm(initialGenreForm);
       }
       fetchGenres(currentPage, activeSearch);
       fetchAllGenresForPicker();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa thể loại"));
+      toast.error(getApiErrorMessage(err, "Unable to delete genre"));
     }
   };
 
@@ -492,7 +492,7 @@ export default function AdminPage() {
             fontSize: "16px",
           }}
         >
-          Đang xác thực quyền Quản trị viên...
+          Verifying Administrator access...
         </div>
         <Footer />
       </div>
@@ -523,7 +523,7 @@ export default function AdminPage() {
               fontFamily: "var(--font-serif)",
             }}
           >
-            Truy cập bị từ chối (403 Forbidden)
+            Access Denied (403 Forbidden)
           </h1>
           <p
             style={{
@@ -534,8 +534,8 @@ export default function AdminPage() {
               fontSize: "16px",
             }}
           >
-            Trang Quản trị chỉ dành riêng cho tài khoản Quản trị viên (Staff / Superuser).
-            Vui lòng đăng nhập bằng tài khoản có thẩm quyền để truy cập trang này.
+            The Admin Dashboard is restricted to Administrator accounts (Staff / Superuser).
+            Please sign in with an authorized account to access this page.
           </p>
           <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link
@@ -550,7 +550,7 @@ export default function AdminPage() {
                 fontSize: "15px",
               }}
             >
-              Đăng nhập Quản trị viên
+              Admin Sign In
             </Link>
             <Link
               to="/"
@@ -565,7 +565,7 @@ export default function AdminPage() {
                 border: "1px solid #dcd6cc",
               }}
             >
-              Về Trang chủ
+              Back to Home
             </Link>
           </div>
         </div>
@@ -579,51 +579,51 @@ export default function AdminPage() {
       <Header />
 
       <main className={styles.container}>
-        {/* TIÊU ĐỀ ADMIN DASHBOARD */}
+        {/* ADMIN DASHBOARD HEADER */}
         <div className={styles.headerRow}>
           <div>
             <h1 className={styles.pageTitle}>Admin Dashboard</h1>
             <p className={styles.subtitle}>
-              Quản lý toàn bộ Đầu sách, Tác giả và Thể loại trong hệ thống E-Library
+              Manage all Books, Authors, and Genres across the E-Library catalog
             </p>
           </div>
         </div>
 
-        {/* THÔNG BÁO QUYỀN TRUY CẬP ADMIN */}
+        {/* ADMIN ACCESS BANNER */}
         <div className={styles.authBannerSuccess}>
           <span>🟢</span>
           <span>
-            Đang thao tác với quyền Quản trị viên: <strong>{currentUser?.username || "admin"}</strong>{" "}
-            (Staff / Superuser) — Toàn quyền Thêm, Sửa, Xóa Catalog.
+            Operating as Administrator: <strong>{currentUser?.username || "admin"}</strong>{" "}
+            (Staff / Superuser) — Full catalog management permissions.
           </span>
         </div>
 
-        {/* CÁC THẺ THỐNG KÊ TỔNG QUAN */}
+        {/* OVERVIEW STATS CARDS */}
         <div className={styles.statsRow}>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>📚</div>
             <div>
               <div className={styles.statValue}>{bookTotalCount}</div>
-              <div className={styles.statLabel}>Đầu sách trong thư viện</div>
+              <div className={styles.statLabel}>Books in catalog</div>
             </div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>✍️</div>
             <div>
               <div className={styles.statValue}>{allAuthors.length}</div>
-              <div className={styles.statLabel}>Tác giả đã đăng ký</div>
+              <div className={styles.statLabel}>Registered Authors</div>
             </div>
           </div>
           <div className={styles.statCard}>
             <div className={styles.statIcon}>🏷️</div>
             <div>
               <div className={styles.statValue}>{genreTotalCount || allGenresList.length}</div>
-              <div className={styles.statLabel}>Thể loại sách</div>
+              <div className={styles.statLabel}>Book Genres</div>
             </div>
           </div>
         </div>
 
-        {/* THANH CHUYỂN ĐỔI 3 TAB (Gắn liền với ?tab= trên URL) */}
+        {/* 3-TAB NAVIGATION BAR (Linked to ?tab= on URL) */}
         <div className={styles.tabBar}>
           <button
             onClick={() => handleTabChange("books")}
@@ -646,22 +646,22 @@ export default function AdminPage() {
         </div>
 
         {/* ============================================================== */}
-        {/* TAB 1: QUẢN LÝ SÁCH (Books Management)                          */}
+        {/* TAB 1: BOOKS MANAGEMENT (Books Management)                      */}
         {/* ============================================================== */}
         {activeTab === "books" && (
           <div className={styles.tableColumn}>
-            {/* THANH CÔNG CỤ: TÌM KIẾM BÊN TRÁI - NÚT ADD NEW BOOK BÊN PHẢI */}
+            {/* TOOLBAR: SEARCH LEFT - ADD NEW BOOK BUTTON RIGHT */}
             <div className={styles.tableToolbar}>
               <form onSubmit={handleSearchSubmit} className={styles.searchBox}>
                 <input
                   type="text"
                   className={styles.searchInput}
-                  placeholder="Tìm theo tên sách hoặc tác giả..."
+                  placeholder="Search books by title or author..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
                 <button type="submit" className={styles.searchActionBtn}>
-                  Tìm kiếm
+                  Search
                 </button>
                 {activeSearch && (
                   <button
@@ -669,12 +669,12 @@ export default function AdminPage() {
                     onClick={handleClearSearch}
                     className={styles.clearSearchBtn}
                   >
-                    Xóa lọc
+                    Clear
                   </button>
                 )}
               </form>
 
-              {/* NÚT + ADD NEW BOOK */}
+              {/* + ADD NEW BOOK BUTTON */}
               <button
                 type="button"
                 onClick={() => {
@@ -691,26 +691,26 @@ export default function AdminPage() {
               </button>
             </div>
 
-            {/* BẢNG DỮ LIỆU SÁCH */}
+            {/* BOOKS DATA TABLE */}
             <div className={styles.tableWrapper}>
               {isLoadingBooks ? (
-                <div className={styles.loadingState}>Đang tải danh sách sách từ máy chủ...</div>
+                <div className={styles.loadingState}>Loading books from server...</div>
               ) : books.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>📖</div>
-                  <div>Không tìm thấy cuốn sách nào phù hợp.</div>
+                  <div>No books found matching your criteria.</div>
                 </div>
               ) : (
                 <table className={styles.table}>
                   <thead>
                     <tr>
                       <th style={{ width: "40px" }}>ID</th>
-                      <th style={{ width: "50px" }}>Ảnh</th>
-                      <th>Tựa đề</th>
-                      <th>Tác giả</th>
-                      <th>Thể loại</th>
-                      <th>Đánh giá / Trang</th>
-                      <th style={{ width: "130px" }}>Thao tác</th>
+                      <th style={{ width: "50px" }}>Cover</th>
+                      <th>Title</th>
+                      <th>Author</th>
+                      <th>Genres</th>
+                      <th>Rating / Pages</th>
+                      <th style={{ width: "130px" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -732,7 +732,7 @@ export default function AdminPage() {
                             {book.title}
                           </Link>
                         </td>
-                        <td>{book.author || "Chưa rõ"}</td>
+                        <td>{book.author || "Unknown"}</td>
                         <td>
                           <div className={styles.genreTags}>
                             {Array.isArray(book.genres) && book.genres.length > 0 ? (
@@ -742,7 +742,7 @@ export default function AdminPage() {
                                 </span>
                               ))
                             ) : (
-                              <span style={{ color: "#999", fontSize: "12px" }}>Không có</span>
+                              <span style={{ color: "#999", fontSize: "12px" }}>None</span>
                             )}
                             {Array.isArray(book.genres) && book.genres.length > 3 && (
                               <span className={styles.genreTag}>+{book.genres.length - 3}</span>
@@ -750,25 +750,25 @@ export default function AdminPage() {
                           </div>
                         </td>
                         <td style={{ fontSize: "13px" }}>
-                          ⭐ {book.avg_rating || book.rating || "Chưa có"}
+                          ⭐ {book.avg_rating || book.rating || "N/A"}
                           <br />
-                          <span style={{ color: "#777" }}>{book.pages ? `${book.pages} trang` : "N/A"}</span>
+                          <span style={{ color: "#777" }}>{book.pages ? `${book.pages} pages` : "N/A"}</span>
                         </td>
                         <td>
                           <div className={styles.actionGroup}>
                             <button
                               onClick={() => handleStartEditBook(book)}
                               className={styles.editBtn}
-                              title="Chỉnh sửa thông tin sách"
+                              title="Edit book details"
                             >
-                              Sửa
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDeleteBook(book)}
                               className={styles.deleteBtn}
-                              title="Xóa cuốn sách khỏi cơ sở dữ liệu"
+                              title="Delete book from database"
                             >
-                              Xóa
+                              Delete
                             </button>
                           </div>
                         </td>
@@ -779,10 +779,10 @@ export default function AdminPage() {
               )}
             </div>
 
-            {/* PHÂN TRANG CHO SÁCH (?page=X) */}
+            {/* PAGINATION FOR BOOKS (?page=X) */}
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Hiển thị trang <strong>{currentPage}</strong> trên tổng số <strong>{bookTotalPages}</strong> trang ({bookTotalCount} sách)
+                Showing page <strong>{currentPage}</strong> of <strong>{bookTotalPages}</strong> ({bookTotalCount} books)
               </div>
               {bookTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -792,7 +792,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     className={styles.pageBtn}
                   >
-                    « Trang trước
+                    « Previous
                   </button>
 
                   {getPaginationItems(currentPage, bookTotalPages).map((item, idx) => {
@@ -822,7 +822,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     className={styles.pageBtn}
                   >
-                    Trang sau »
+                    Next »
                   </button>
                 </div>
               )}
@@ -831,7 +831,7 @@ export default function AdminPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 2: QUẢN LÝ TÁC GIẢ (Authors Management)                     */}
+        {/* TAB 2: AUTHORS MANAGEMENT (Authors Management)                  */}
         {/* ============================================================== */}
         {activeTab === "authors" && (
           <div className={styles.tableColumn}>
@@ -840,12 +840,12 @@ export default function AdminPage() {
                 <input
                   type="text"
                   className={styles.searchInput}
-                  placeholder="Tìm kiếm tác giả theo tên..."
+                  placeholder="Search authors by name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
                 <button type="submit" className={styles.searchActionBtn}>
-                  Tìm kiếm
+                  Search
                 </button>
                 {activeSearch && (
                   <button
@@ -853,12 +853,12 @@ export default function AdminPage() {
                     onClick={handleClearSearch}
                     className={styles.clearSearchBtn}
                   >
-                    Xóa lọc
+                    Clear
                   </button>
                 )}
               </form>
 
-              {/* NÚT + ADD NEW AUTHOR */}
+              {/* + ADD NEW AUTHOR BUTTON */}
               <button
                 type="button"
                 onClick={() => {
@@ -879,16 +879,16 @@ export default function AdminPage() {
               {paginatedAuthors.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>✍️</div>
-                  <div>Không tìm thấy tác giả nào phù hợp.</div>
+                  <div>No authors found matching your criteria.</div>
                 </div>
               ) : (
                 <table className={styles.table}>
                   <thead>
                     <tr>
                       <th style={{ width: "80px" }}>ID</th>
-                      <th>Tên Tác giả</th>
-                      <th style={{ width: "160px" }}>Trang chi tiết</th>
-                      <th style={{ width: "140px" }}>Thao tác</th>
+                      <th>Author Name</th>
+                      <th style={{ width: "160px" }}>Detail Page</th>
+                      <th style={{ width: "140px" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -898,7 +898,7 @@ export default function AdminPage() {
                         <td className={styles.itemName}>{author.name}</td>
                         <td>
                           <Link to={`/authors/${author.id}`} className={styles.bookLink}>
-                            Xem hồ sơ tác giả ↗
+                            View Author Profile ↗
                           </Link>
                         </td>
                         <td>
@@ -906,16 +906,16 @@ export default function AdminPage() {
                             <button
                               onClick={() => handleStartEditAuthor(author)}
                               className={styles.editBtn}
-                              title="Chỉnh sửa tên tác giả"
+                              title="Edit author name"
                             >
-                              Sửa
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDeleteAuthor(author)}
                               className={styles.deleteBtn}
-                              title="Xóa tác giả khỏi cơ sở dữ liệu"
+                              title="Delete author from database"
                             >
-                              Xóa
+                              Delete
                             </button>
                           </div>
                         </td>
@@ -928,7 +928,7 @@ export default function AdminPage() {
 
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Hiển thị trang <strong>{currentPage}</strong> trên tổng số <strong>{authorTotalPages}</strong> trang ({filteredAuthors.length} tác giả)
+                Showing page <strong>{currentPage}</strong> of <strong>{authorTotalPages}</strong> ({filteredAuthors.length} authors)
               </div>
               {authorTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -938,7 +938,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     className={styles.pageBtn}
                   >
-                    « Trang trước
+                    « Previous
                   </button>
 
                   {getPaginationItems(currentPage, authorTotalPages).map((item, idx) => {
@@ -968,7 +968,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     className={styles.pageBtn}
                   >
-                    Trang sau »
+                    Next »
                   </button>
                 </div>
               )}
@@ -977,7 +977,7 @@ export default function AdminPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 3: QUẢN LÝ THỂ LOẠI (Genres Management)                     */}
+        {/* TAB 3: GENRES MANAGEMENT (Genres Management)                     */}
         {/* ============================================================== */}
         {activeTab === "genres" && (
           <div className={styles.tableColumn}>
@@ -986,12 +986,12 @@ export default function AdminPage() {
                 <input
                   type="text"
                   className={styles.searchInput}
-                  placeholder="Tìm kiếm thể loại..."
+                  placeholder="Search genres by name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                 />
                 <button type="submit" className={styles.searchActionBtn}>
-                  Tìm kiếm
+                  Search
                 </button>
                 {activeSearch && (
                   <button
@@ -999,12 +999,12 @@ export default function AdminPage() {
                     onClick={handleClearSearch}
                     className={styles.clearSearchBtn}
                   >
-                    Xóa lọc
+                    Clear
                   </button>
                 )}
               </form>
 
-              {/* NÚT + ADD NEW GENRE */}
+              {/* + ADD NEW GENRE BUTTON */}
               <button
                 type="button"
                 onClick={() => {
@@ -1023,20 +1023,20 @@ export default function AdminPage() {
 
             <div className={styles.tableWrapper}>
               {isLoadingGenres ? (
-                <div className={styles.loadingState}>Đang tải danh sách thể loại từ máy chủ...</div>
+                <div className={styles.loadingState}>Loading genres from server...</div>
               ) : genres.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>🏷️</div>
-                  <div>Không tìm thấy thể loại nào phù hợp.</div>
+                  <div>No genres found matching your criteria.</div>
                 </div>
               ) : (
                 <table className={styles.table}>
                   <thead>
                     <tr>
                       <th style={{ width: "80px" }}>ID</th>
-                      <th>Tên Thể loại</th>
-                      <th>Số lượng sách</th>
-                      <th style={{ width: "140px" }}>Thao tác</th>
+                      <th>Genre Name</th>
+                      <th>Book Count</th>
+                      <th style={{ width: "140px" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1045,23 +1045,23 @@ export default function AdminPage() {
                         <td>#{genre.id}</td>
                         <td className={styles.itemName}>{genre.name}</td>
                         <td>
-                          <span style={{ fontWeight: 600 }}>{genre.book_count ?? 0}</span> cuốn sách
+                          <span style={{ fontWeight: 600 }}>{genre.book_count ?? 0}</span> books
                         </td>
                         <td>
                           <div className={styles.actionGroup}>
                             <button
                               onClick={() => handleStartEditGenre(genre)}
                               className={styles.editBtn}
-                              title="Chỉnh sửa tên thể loại"
+                              title="Edit genre name"
                             >
-                              Sửa
+                              Edit
                             </button>
                             <button
                               onClick={() => handleDeleteGenre(genre)}
                               className={styles.deleteBtn}
-                              title="Xóa thể loại khỏi cơ sở dữ liệu"
+                              title="Delete genre from database"
                             >
-                              Xóa
+                              Delete
                             </button>
                           </div>
                         </td>
@@ -1074,7 +1074,7 @@ export default function AdminPage() {
 
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Hiển thị trang <strong>{currentPage}</strong> trên tổng số <strong>{genreTotalPages}</strong> trang ({genreTotalCount} thể loại)
+                Showing page <strong>{currentPage}</strong> of <strong>{genreTotalPages}</strong> ({genreTotalCount} genres)
               </div>
               {genreTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -1084,7 +1084,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage - 1)}
                     className={styles.pageBtn}
                   >
-                    « Trang trước
+                    « Previous
                   </button>
 
                   {getPaginationItems(currentPage, genreTotalPages).map((item, idx) => {
@@ -1114,7 +1114,7 @@ export default function AdminPage() {
                     onClick={() => handlePageChange(currentPage + 1)}
                     className={styles.pageBtn}
                   >
-                    Trang sau »
+                    Next »
                   </button>
                 </div>
               )}
@@ -1124,7 +1124,7 @@ export default function AdminPage() {
       </main>
 
       {/* ============================================================== */}
-      {/* POPUP MODAL 1: THÊM / SỬA SÁCH (Tái sử dụng Component Modal)  */}
+      {/* POPUP MODAL 1: ADD / EDIT BOOK                                  */}
       {/* ============================================================== */}
       <Modal
         isOpen={isBookModalOpen}
@@ -1138,7 +1138,7 @@ export default function AdminPage() {
             <input
               type="text"
               className={styles.input}
-              placeholder="Ví dụ: Lược Sử Thời Gian"
+              placeholder="e.g. A Brief History of Time"
               value={bookForm.title}
               onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
               required
@@ -1153,7 +1153,7 @@ export default function AdminPage() {
               onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
               required
             >
-              <option value="">-- Chọn tác giả --</option>
+              <option value="">-- Select an Author --</option>
               {allAuthors.map((author) => (
                 <option key={author.id} value={author.id}>
                   {author.name} (ID: #{author.id})
@@ -1161,12 +1161,12 @@ export default function AdminPage() {
               ))}
             </select>
             <span className={styles.helperText}>
-              Chưa có tác giả? Chuyển sang Tab "Manage Authors" để thêm mới.
+              Author not listed? Switch to "Manage Authors" tab to add them.
             </span>
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Genres (Click để chọn/bỏ chọn)</label>
+            <label className={styles.label}>Genres (Click to toggle)</label>
             <div className={styles.genrePickerBox}>
               {allGenresList.map((g) => {
                 const isSelected = bookForm.genres.includes(g.id);
@@ -1175,7 +1175,7 @@ export default function AdminPage() {
                     key={g.id}
                     onClick={() => handleToggleGenre(g.id)}
                     className={`${styles.genreChip} ${isSelected ? styles.genreChipSelected : ""}`}
-                    title={isSelected ? "Bấm để bỏ chọn" : "Bấm để chọn"}
+                    title={isSelected ? "Click to deselect" : "Click to select"}
                   >
                     {isSelected ? `✓ ${g.name}` : g.name}
                   </span>
@@ -1186,7 +1186,7 @@ export default function AdminPage() {
 
           <div className={styles.fieldRow}>
             <div className={styles.field}>
-              <label className={styles.label}>Pages (Số trang)</label>
+              <label className={styles.label}>Pages</label>
               <input
                 type="number"
                 min="1"
@@ -1227,13 +1227,13 @@ export default function AdminPage() {
                     e.target.style.display = "none";
                   }}
                 />
-                <span style={{ fontSize: "12px", color: "#666" }}>Xem trước ảnh bìa sách</span>
+                <span style={{ fontSize: "12px", color: "#666" }}>Cover Image Preview</span>
               </div>
             )}
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Source URL (Đường dẫn sách/mua hàng)</label>
+            <label className={styles.label}>Source URL (Original book / purchase link)</label>
             <input
               type="url"
               className={styles.input}
@@ -1244,10 +1244,10 @@ export default function AdminPage() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Description (Mô tả sách)</label>
+            <label className={styles.label}>Description</label>
             <textarea
               className={styles.textarea}
-              placeholder="Nội dung giới thiệu ngắn về cuốn sách..."
+              placeholder="Brief description or synopsis of the book..."
               value={bookForm.description}
               onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
             />
@@ -1259,7 +1259,7 @@ export default function AdminPage() {
               onClick={() => setIsBookModalOpen(false)}
               className={styles.cancelBtn}
             >
-              Hủy bỏ
+              Cancel
             </button>
             <button
               type="submit"
@@ -1267,17 +1267,17 @@ export default function AdminPage() {
               className={styles.submitBtn}
             >
               {isSubmittingBook
-                ? "Đang lưu..."
+                ? "Saving..."
                 : bookForm.id
-                ? "Cập nhật Sách"
-                : "+ Thêm mới Sách"}
+                ? "Update Book"
+                : "+ Create Book"}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* ============================================================== */}
-      {/* POPUP MODAL 2: THÊM / SỬA TÁC GIẢ (Tái sử dụng Component Modal) */}
+      {/* POPUP MODAL 2: ADD / EDIT AUTHOR                                */}
       {/* ============================================================== */}
       <Modal
         isOpen={isAuthorModalOpen}
@@ -1291,7 +1291,7 @@ export default function AdminPage() {
             <input
               type="text"
               className={styles.input}
-              placeholder="Ví dụ: J.K. Rowling"
+              placeholder="e.g. J.K. Rowling"
               value={authorForm.name}
               onChange={(e) => setAuthorForm({ ...authorForm, name: e.target.value })}
               required
@@ -1305,7 +1305,7 @@ export default function AdminPage() {
               onClick={() => setIsAuthorModalOpen(false)}
               className={styles.cancelBtn}
             >
-              Hủy bỏ
+              Cancel
             </button>
             <button
               type="submit"
@@ -1313,17 +1313,17 @@ export default function AdminPage() {
               className={styles.submitBtn}
             >
               {isSubmittingAuthor
-                ? "Đang lưu..."
+                ? "Saving..."
                 : authorForm.id
-                ? "Cập nhật Tác giả"
-                : "+ Thêm mới Tác giả"}
+                ? "Update Author"
+                : "+ Create Author"}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* ============================================================== */}
-      {/* POPUP MODAL 3: THÊM / SỬA THỂ LOẠI (Tái sử dụng Component Modal)*/}
+      {/* POPUP MODAL 3: ADD / EDIT GENRE                                 */}
       {/* ============================================================== */}
       <Modal
         isOpen={isGenreModalOpen}
@@ -1337,7 +1337,7 @@ export default function AdminPage() {
             <input
               type="text"
               className={styles.input}
-              placeholder="Ví dụ: Science Fiction, Dystopia..."
+              placeholder="e.g. Science Fiction, Dystopia..."
               value={genreForm.name}
               onChange={(e) => setGenreForm({ ...genreForm, name: e.target.value })}
               required
@@ -1351,7 +1351,7 @@ export default function AdminPage() {
               onClick={() => setIsGenreModalOpen(false)}
               className={styles.cancelBtn}
             >
-              Hủy bỏ
+              Cancel
             </button>
             <button
               type="submit"
@@ -1359,10 +1359,10 @@ export default function AdminPage() {
               className={styles.submitBtn}
             >
               {isSubmittingGenre
-                ? "Đang lưu..."
+                ? "Saving..."
                 : genreForm.id
-                ? "Cập nhật Thể loại"
-                : "+ Thêm mới Thể loại"}
+                ? "Update Genre"
+                : "+ Create Genre"}
             </button>
           </div>
         </form>

@@ -35,10 +35,10 @@ export default function LoginPage() {
         localStorage.setItem("user", JSON.stringify(res.data.user));
       }
 
-      toast.success("Đăng nhập thành công!");
+      toast.success("Signed in successfully!");
       navigate("/");
     } catch (err) {
-      const msg = getApiErrorMessage(err, "Tên đăng nhập hoặc mật khẩu không chính xác.");
+      const msg = getApiErrorMessage(err, "Incorrect username or password.");
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -73,10 +73,11 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <label className={styles.label}>Username or Email</label>
+            <label className={styles.label}>Username</label>
             <input
               type="text"
               className={styles.input}
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -103,7 +104,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className={styles.togglePasswordBtn}
-                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                title={showPassword ? "Hide password" : "Show password"}
                 tabIndex="-1"
               >
                 {showPassword ? (

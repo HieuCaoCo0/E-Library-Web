@@ -39,7 +39,7 @@ export default function MyBooksPage() {
       const res = await api.get("/api/user-library/");
       const records = res.data || [];
 
-      // Lấy thông tin chi tiết từng cuốn sách
+      // Fetch book details for each record
       const bookPromises = records.map(async (rec) => {
         try {
           const bookRes = await api.get(`/api/books/${rec.book}/`);
@@ -71,7 +71,7 @@ export default function MyBooksPage() {
       const loadedItems = await Promise.all(bookPromises);
       setShelfItems(loadedItems);
     } catch (err) {
-      console.error("Lỗi khi tải tủ sách:", err);
+      console.error("Failed to load bookshelves:", err);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +99,7 @@ export default function MyBooksPage() {
     return matchShelf && matchQuery;
   });
 
-  // Đổi trạng thái kệ sách (PATCH /api/user-library/{id}/)
+  // Update shelf status (PATCH /api/user-library/{id}/)
   const handleStatusChange = async (id, newStatus) => {
     try {
       await api.patch(`/api/user-library/${id}/`, {
@@ -110,22 +110,22 @@ export default function MyBooksPage() {
           item.id === id ? { ...item, status: newStatus } : item,
         ),
       );
-      toast.success("Đã cập nhật trạng thái sách!");
+      toast.success("Book status updated successfully!");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể cập nhật trạng thái sách."));
+      toast.error(getApiErrorMessage(err, "Unable to update book status."));
     }
   };
 
-  // Xóa sách khỏi tủ sách (DELETE /api/user-library/{id}/)
+  // Remove book from shelf (DELETE /api/user-library/{id}/)
   const handleRemove = async (id, title) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa "${title}" khỏi tủ sách?`)) return;
+    if (!confirm(`Are you sure you want to remove "${title}" from your bookshelf?`)) return;
 
     try {
       await api.delete(`/api/user-library/${id}/`);
       setShelfItems((prev) => prev.filter((item) => item.id !== id));
-      toast.info("Đã xóa sách khỏi tủ sách.");
+      toast.info("Removed book from bookshelf.");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa sách khỏi tủ sách."));
+      toast.error(getApiErrorMessage(err, "Unable to remove book from bookshelf."));
     }
   };
 
@@ -148,9 +148,9 @@ export default function MyBooksPage() {
             alignItems: "center",
           }}
         >
-          <h2>Bạn chưa đăng nhập</h2>
+          <h2>You are not signed in</h2>
           <p style={{ color: "#666", margin: "16px 0 24px" }}>
-            Vui lòng đăng nhập để xem và quản lý tủ sách cá nhân (My Books) của bạn.
+            Please sign in to view and manage your personal bookshelf.
           </p>
           <button
             onClick={() => navigate("/login")}
@@ -164,7 +164,7 @@ export default function MyBooksPage() {
               fontSize: "15px",
             }}
           >
-            Đi đến Đăng nhập
+            Sign in
           </button>
         </div>
         <Footer />
@@ -188,7 +188,7 @@ export default function MyBooksPage() {
           <div>
             <h1 className={styles.pageTitle}>My Books</h1>
             <p className={styles.pageSubtitle}>
-              Quản lý danh sách sách bạn đang đọc, đã đọc hoặc dự định đọc
+              Manage books you are currently reading, have read, or plan to read
             </p>
           </div>
 
@@ -225,7 +225,7 @@ export default function MyBooksPage() {
         </div>
 
         <div className={styles.layout}>
-          {/* CỘT TRÁI: Danh sách kệ sách */}
+          {/* LEFT COLUMN: Bookshelves */}
           <aside className={styles.sidebar}>
             <h2 className={styles.sidebarTitle}>Bookshelves</h2>
             <ul className={styles.shelfList}>
@@ -248,31 +248,31 @@ export default function MyBooksPage() {
 
             <div className={styles.statsBox}>
               <div>
-                <strong>Thống kê đọc sách:</strong>
+                <strong>Reading Stats:</strong>
               </div>
               <div>
-                • Đã đọc xong: <strong>{countByStatus("read")}</strong> cuốn
+                • Read: <strong>{countByStatus("read")}</strong> books
               </div>
               <div>
-                • Đang đọc: <strong>{countByStatus("reading")}</strong> cuốn
+                • Currently Reading: <strong>{countByStatus("reading")}</strong> books
               </div>
               <div>
-                • Muốn đọc: <strong>{countByStatus("want_to_read")}</strong> cuốn
+                • Want to Read: <strong>{countByStatus("want_to_read")}</strong> books
               </div>
             </div>
           </aside>
 
-          {/* CỘT PHẢI: Hiển thị Bảng hoặc Lưới sách */}
+          {/* RIGHT COLUMN: Table or Grid View */}
           <section>
             {isLoading ? (
               <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-                Đang tải tủ sách cá nhân...
+                Loading your personal bookshelf...
               </div>
             ) : filteredItems.length === 0 ? (
               <div className={styles.emptyBox}>
-                <div>Không có cuốn sách nào trong kệ này!</div>
+                <div>No books found on this shelf!</div>
                 <Link to="/" className={styles.browseLink}>
-                  + Khám phá và thêm sách từ Trang chủ
+                  + Explore and add books from Home
                 </Link>
               </div>
             ) : viewMode === "list" ? (
@@ -337,7 +337,7 @@ export default function MyBooksPage() {
                         <button
                           onClick={() => handleRemove(item.id, item.title)}
                           className={styles.removeBtn}
-                          title="Xóa khỏi tủ sách"
+                          title="Remove from shelf"
                         >
                           ✕
                         </button>

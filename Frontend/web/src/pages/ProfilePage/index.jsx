@@ -42,7 +42,7 @@ export default function ProfilePage() {
         });
       })
       .catch((err) => {
-        console.error("Lỗi khi tải hồ sơ:", err);
+        console.error("Failed to load profile:", err);
       })
       .finally(() => {
         setIsLoading(false);
@@ -57,7 +57,7 @@ export default function ProfilePage() {
     };
   }, []);
 
-  // Xử lý upload avatar (multipart/form-data)
+  // Handle avatar upload (multipart/form-data)
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -70,18 +70,18 @@ export default function ProfilePage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setProfile(res.data);
-      setSaveMessage("Đã cập nhật ảnh đại diện mới!");
-      toast.success("Đã cập nhật ảnh đại diện mới!");
+      setSaveMessage("Profile picture updated successfully!");
+      toast.success("Profile picture updated successfully!");
       setTimeout(() => setSaveMessage(""), 3000);
     } catch (err) {
-      const msg = getApiErrorMessage(err, "Không thể tải lên ảnh đại diện.");
+      const msg = getApiErrorMessage(err, "Unable to upload profile photo.");
       setErrorMessage(msg);
       toast.error(msg);
       setTimeout(() => setErrorMessage(""), 4000);
     }
   };
 
-  // Xử lý lưu thông tin cá nhân (PATCH /api/users/profile/)
+  // Handle saving profile info (PATCH /api/users/profile/)
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaveMessage("");
@@ -92,11 +92,11 @@ export default function ProfilePage() {
       setProfile(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
       setIsEditing(false);
-      setSaveMessage("Cập nhật hồ sơ cá nhân thành công!");
-      toast.success("Cập nhật hồ sơ cá nhân thành công!");
+      setSaveMessage("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setTimeout(() => setSaveMessage(""), 3000);
     } catch (err) {
-      const msg = getApiErrorMessage(err, "Không thể cập nhật hồ sơ.");
+      const msg = getApiErrorMessage(err, "Unable to update profile.");
       setErrorMessage(msg);
       toast.error(msg);
       setTimeout(() => setErrorMessage(""), 4000);
@@ -122,9 +122,9 @@ export default function ProfilePage() {
             alignItems: "center",
           }}
         >
-          <h2>Bạn chưa đăng nhập</h2>
+          <h2>You are not signed in</h2>
           <p style={{ color: "#666", margin: "16px 0 24px" }}>
-            Vui lòng đăng nhập để xem và quản lý hồ sơ cá nhân của bạn.
+            Please sign in to view and manage your profile.
           </p>
           <button
             onClick={() => navigate("/login")}
@@ -138,7 +138,7 @@ export default function ProfilePage() {
               fontSize: "15px",
             }}
           >
-            Đi đến Đăng nhập
+            Sign in
           </button>
         </div>
         <Footer />
@@ -161,7 +161,7 @@ export default function ProfilePage() {
             alignItems: "center",
           }}
         >
-          Đang tải thông tin hồ sơ...
+          Loading profile information...
         </div>
         <Footer />
       </div>
@@ -173,12 +173,18 @@ export default function ProfilePage() {
     profile?.username ||
     "Member";
 
+  const isAdmin = Boolean(
+    profile?.is_staff ||
+      profile?.is_superuser ||
+      profile?.username === "admin"
+  );
+
   return (
     <div className={styles.pageWrapper}>
       <Header />
 
       <main className={styles.container}>
-        {/* CỘT TRÁI: Thẻ thông tin cá nhân & Ảnh đại diện */}
+        {/* LEFT COLUMN: Profile Card & Avatar */}
         <aside>
           <div className={styles.profileCard}>
             <div className={styles.avatarWrapper}>
@@ -208,13 +214,19 @@ export default function ProfilePage() {
             <h2 className={styles.userName}>{fullName}</h2>
             <p className={styles.userEmail}>@{profile?.username}</p>
             <p className={styles.userEmail}>{profile?.email}</p>
-            <span className={styles.roleBadge}>E-Library Reader</span>
+            <span
+              className={`${styles.roleBadge} ${
+                isAdmin ? styles.adminRoleBadge : ""
+              }`}
+            >
+              {isAdmin ? "Administrator / Staff" : "E-Library Reader"}
+            </span>
 
             <div className={styles.metaInfo}>
               <div>
                 <strong>Joined:</strong>{" "}
                 {profile?.date_joined
-                  ? new Date(profile.date_joined).toLocaleDateString("vi-VN")
+                  ? new Date(profile.date_joined).toLocaleDateString("en-US")
                   : "Recently"}
               </div>
               <div style={{ marginTop: "12px" }}>
@@ -222,11 +234,28 @@ export default function ProfilePage() {
                   View My Books →
                 </Link>
               </div>
+              {isAdmin && (
+                <div style={{ marginTop: "8px" }}>
+                  <Link
+                    to="/admin"
+                    style={{
+                      color: "#276749",
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
+                  >
+                    Admin Dashboard →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </aside>
 
-        {/* CỘT PHẢI: Chi tiết Bio & Form cập nhật */}
+        {/* RIGHT COLUMN: Bio Details & Edit Form */}
         <section>
           <div className={styles.headerRow}>
             <h1 className={styles.pageTitle}>My Profile</h1>
@@ -337,6 +366,7 @@ export default function ProfilePage() {
                   <div><strong>Username:</strong> {profile?.username}</div>
                   <div><strong>Email:</strong> {profile?.email}</div>
                   <div><strong>User ID:</strong> #{profile?.id}</div>
+                  <div><strong>Role:</strong> {isAdmin ? "Administrator / Staff" : "Reader"}</div>
                 </div>
               </div>
             </div>

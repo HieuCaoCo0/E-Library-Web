@@ -30,16 +30,16 @@ export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Danh sách thể loại từ API /api/genres/
+  // Genres list from API /api/genres/
   const [genres, setGenres] = useState([]);
-  // Danh sách sách từ API /api/books/
+  // Books list from API /api/books/
   const [books, setBooks] = useState([]);
-  const [totalBooks, setTotalBooks] = useState(0); // Số sách theo bộ lọc hiện tại
-  const [overallTotalBooks, setOverallTotalBooks] = useState(300); // Tổng số sách toàn thư viện (cố định)
+  const [totalBooks, setTotalBooks] = useState(0); // Filtered book count
+  const [overallTotalBooks, setOverallTotalBooks] = useState(300); // Total library book count
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
-  // Gợi ý sách cá nhân hóa từ API /api/recommendations/
+  // Personalized recommendations from API /api/recommendations/
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [isColdStart, setIsColdStart] = useState(false);
   const [isLoadingRecs, setIsLoadingRecs] = useState(false);
@@ -49,12 +49,13 @@ export default function HomePage() {
       localStorage.getItem("refresh_token")
     );
   });
-  // Danh sách ID sách trong kệ cá nhân từ API /api/user-library/
+  // Saved book IDs from API /api/user-library/
   const [savedBooks, setSavedBooks] = useState([]);
   const [libraryRecords, setLibraryRecords] = useState({}); // bookId -> recordId
 
   const searchKeyword = searchParams.get("search") || "";
   const selectedGenre = searchParams.get("genre") || "all";
+  const currentOrdering = searchParams.get("ordering") || "id";
   const rawPage = parseInt(searchParams.get("page") || "1", 10);
   const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
 
@@ -67,7 +68,7 @@ export default function HomePage() {
         setGenres(results);
       })
       .catch((err) => {
-        console.error("Lỗi khi tải thể loại:", err);
+        console.error("Failed to load genres:", err);
       });
   }, []);
 
@@ -122,7 +123,7 @@ export default function HomePage() {
         setIsColdStart(Boolean(res.data?.cold_start));
       })
       .catch((err) => {
-        console.error("Lỗi khi tải gợi ý sách:", err);
+        console.error("Failed to load recommendations:", err);
         setRecommendedBooks([]);
       })
       .finally(() => {
@@ -154,7 +155,7 @@ export default function HomePage() {
     };
   }, []);
 
-  // 4. Lấy danh sách sách theo bộ lọc (?search= & ?genre= & page)
+  // 4. Fetch books list by filters (?search= & ?genre= & ?ordering= & page)
   useEffect(() => {
     setIsLoadingBooks(true);
     const params = {
@@ -165,6 +166,9 @@ export default function HomePage() {
     }
     if (selectedGenre && selectedGenre !== "all") {
       params.genre = selectedGenre;
+    }
+    if (currentOrdering && currentOrdering !== "id") {
+      params.ordering = currentOrdering;
     }
 
     api
@@ -179,15 +183,15 @@ export default function HomePage() {
         }
       })
       .catch((err) => {
-        console.error("Lỗi khi tải sách:", err);
+        console.error("Failed to load books:", err);
         setBooks([]);
       })
       .finally(() => {
         setIsLoadingBooks(false);
       });
-  }, [searchKeyword, selectedGenre, page]);
+  }, [searchKeyword, selectedGenre, page, currentOrdering]);
 
-  // Xử lý chuyển trang qua URL (?page=X)
+  // Handle page change (?page=X)
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     if (newPage <= 1) {
@@ -199,7 +203,7 @@ export default function HomePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Xử lý chọn thể loại (luôn reset về trang 1)
+  // Handle genre filter selection (always resets to page 1)
   const handleSelectGenre = (genreId) => {
     const params = new URLSearchParams(searchParams);
     params.delete("page");
@@ -211,13 +215,25 @@ export default function HomePage() {
     setSearchParams(params);
   };
 
+  // Handle ordering / sorting change (always resets to page 1)
+  const handleSortChange = (newOrdering) => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("page");
+    if (newOrdering === "id" || !newOrdering) {
+      params.delete("ordering");
+    } else {
+      params.set("ordering", newOrdering);
+    }
+    setSearchParams(params);
+  };
+
   // Thêm/Xóa sách khỏi kệ cá nhân
   const toggleShelf = async (bookId) => {
     const token =
       localStorage.getItem("access_token") ||
       localStorage.getItem("refresh_token");
     if (!token) {
-      toast.info("Vui lòng đăng nhập để lưu sách vào kệ cá nhân.");
+      toast.info("Please sign in to save books to your personal shelf.");
       navigate("/login");
       return;
     }
@@ -225,7 +241,7 @@ export default function HomePage() {
     const isAdded = savedBooks.includes(bookId);
 
     if (isAdded && libraryRecords[bookId]) {
-      // Xóa khỏi kệ
+      // Remove from shelf
       try {
         await api.delete(`/api/user-library/${libraryRecords[bookId]}/`);
         setSavedBooks((prev) => prev.filter((id) => id !== bookId));
@@ -234,12 +250,12 @@ export default function HomePage() {
           delete updated[bookId];
           return updated;
         });
-        toast.info("Đã bỏ lưu cuốn sách khỏi kệ cá nhân.");
+        toast.info("Removed book from personal shelf.");
       } catch (err) {
-        toast.error(getApiErrorMessage(err, "Không thể xóa sách khỏi kệ."));
+        toast.error(getApiErrorMessage(err, "Unable to remove book from shelf."));
       }
     } else {
-      // Thêm vào kệ (WANT_TO_READ)
+      // Add to shelf (WANT_TO_READ)
       try {
         const res = await api.post("/api/user-library/", {
           book: bookId,
@@ -250,9 +266,9 @@ export default function HomePage() {
           ...prev,
           [bookId]: res.data.id,
         }));
-        toast.success("Đã thêm sách vào kệ 'Muốn đọc'!");
+        toast.success("Added book to 'Want to Read' shelf!");
       } catch (err) {
-        toast.error(getApiErrorMessage(err, "Không thể thêm sách vào kệ."));
+        toast.error(getApiErrorMessage(err, "Unable to add book to shelf."));
       }
     }
   };
@@ -261,7 +277,7 @@ export default function HomePage() {
     <div className={styles.pageWrapper}>
       <Header />
 
-      {/* Banner giới thiệu đầu trang */}
+      {/* Hero Banner */}
       <section className={styles.banner}>
         <div className={styles.bannerInner}>
           <div>
@@ -269,15 +285,15 @@ export default function HomePage() {
               Meet your next favorite book.
             </h1>
             <p className={styles.bannerDesc}>
-              Khám phá kho sách với hơn {overallTotalBooks || 300} đầu sách chọn lọc, lưu vào tủ sách cá nhân và chia sẻ đánh giá cùng cộng đồng E-Library.
+              Discover a curated collection of over {overallTotalBooks || 300} books, save them to your personal bookshelf, and share reviews with the E-Library community.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Bố cục 3 cột chuẩn Goodreads */}
+      {/* Standard 3-column Goodreads-inspired layout */}
       <main className={styles.mainContainer}>
-        {/* CỘT TRÁI: Danh mục Thể loại (API GET /api/genres/) */}
+        {/* LEFT COLUMN: Genres Directory (API GET /api/genres/) */}
         <aside>
           <h2 className={styles.sectionTitle}>Browse Genres</h2>
           <ul className={styles.genreList}>
@@ -308,42 +324,68 @@ export default function HomePage() {
           </ul>
         </aside>
 
-        {/* CỘT GIỮA: Danh sách Sách (API GET /api/books/?search=&genre=) */}
+        {/* CENTER COLUMN: Books Catalog (API GET /api/books/?search=&genre=) */}
         <section>
           <div className={styles.filterHeader}>
-            <h2 className={styles.resultTitle}>
-              {searchKeyword
-                ? `Search results for "${searchKeyword}"`
-                : selectedGenre === "all"
-                  ? "Popular & Featured Books"
-                  : genres.find((g) => String(g.id) === String(selectedGenre))?.name || "Books"}
-              <span style={{ fontSize: "14px", fontWeight: "normal", color: "#666", marginLeft: "8px" }}>
-                ({totalBooks} books found)
+            <div className={styles.filterTitleArea}>
+              <h2 className={styles.resultTitle}>
+                {searchKeyword
+                  ? `Search results for "${searchKeyword}"`
+                  : selectedGenre === "all"
+                    ? "Popular & Featured Books"
+                    : genres.find((g) => String(g.id) === String(selectedGenre))?.name || "Books"}
+              </h2>
+              <span className={styles.booksCountBadge}>
+                ({totalBooks} {totalBooks === 1 ? "book" : "books"} found)
               </span>
-            </h2>
+            </div>
 
-            {(searchKeyword || selectedGenre !== "all") && (
-              <button
-                onClick={() => setSearchParams({})}
-                className={styles.clearBtn}
-              >
-                Clear filters ✕
-              </button>
-            )}
+            <div className={styles.filterControlsRow}>
+              <div className={styles.sortWrapper}>
+                <label htmlFor="sort-select" className={styles.sortLabel}>
+                  Sort by:
+                </label>
+                <select
+                  id="sort-select"
+                  className={styles.sortSelect}
+                  value={currentOrdering}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                >
+                  <option value="id">Default</option>
+                  <option value="-rating">Highest Rating</option>
+                  <option value="-avg_rating">Top Community Reviews</option>
+                  <option value="-publish_date">Publication Date: Newest</option>
+                  <option value="publish_date">Publication Date: Oldest</option>
+                  <option value="title">Title: A to Z</option>
+                  <option value="-title">Title: Z to A</option>
+                  <option value="-id">Recently Added</option>
+                </select>
+              </div>
+
+              {(searchKeyword || selectedGenre !== "all" || (currentOrdering && currentOrdering !== "id")) && (
+                <button
+                  onClick={() => setSearchParams({})}
+                  className={styles.clearBtn}
+                  title="Reset all filters and sorting"
+                >
+                  Clear filters ✕
+                </button>
+              )}
+            </div>
           </div>
 
           {isLoadingBooks ? (
             <div style={{ textAlign: "center", padding: "40px", color: "#666" }}>
-              Đang tải danh sách sách từ máy chủ...
+              Loading books from server...
             </div>
           ) : books.length === 0 ? (
             <div className={styles.emptyState}>
-              <p>Không tìm thấy cuốn sách nào khớp với yêu cầu của bạn.</p>
+              <p>No books found matching your criteria.</p>
               <button
                 onClick={() => setSearchParams({})}
                 className={styles.clearBtn}
               >
-                Xem tất cả sách
+                View all books
               </button>
             </div>
           ) : (
@@ -399,7 +441,7 @@ export default function HomePage() {
                 })}
               </div>
 
-              {/* Phân trang URL (?page=X) */}
+              {/* Pagination URL (?page=X) */}
               {totalPages > 1 && (
                 <div
                   style={{
@@ -493,7 +535,7 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* CỘT PHẢI: Gợi ý sách (Recommendation - Giữ đủ 10 cuốn từ API) */}
+        {/* RIGHT COLUMN: Book Recommendations */}
         <aside>
           <div className={styles.recContainer}>
             <div className={styles.recHeader}>
@@ -508,11 +550,11 @@ export default function HomePage() {
 
             {isLoadingRecs ? (
               <div style={{ padding: "20px 0", textAlign: "center", color: "#888", fontSize: "13px" }}>
-                Đang tìm sách phù hợp...
+                Finding recommendations...
               </div>
             ) : recommendedBooks.length === 0 ? (
               <div style={{ padding: "16px 0", color: "#666", fontSize: "13px" }}>
-                Chưa có gợi ý sách. Hãy thêm sách vào tủ để nhận gợi ý!
+                No recommendations yet. Add books to your shelf to receive personalized suggestions!
               </div>
             ) : (
               <div className={styles.recList}>
@@ -556,7 +598,7 @@ export default function HomePage() {
                             ★ {book.avg_rating || (book.rating ? Number(book.rating).toFixed(1) : "0.0")}
                           </span>
                           {!isColdStart && matchPercent !== null && matchPercent > 0 && (
-                            <span className={styles.recScoreMatch} title="Mức độ tương đồng với gu đọc của bạn">
+                            <span className={styles.recScoreMatch} title="Reading preference affinity score">
                               {matchPercent}% Match
                             </span>
                           )}
@@ -580,8 +622,7 @@ export default function HomePage() {
           <div className={styles.challengeBox}>
             <h3 className={styles.challengeTitle}>My Personal Shelf</h3>
             <p className={styles.challengeText}>
-              Bạn đang có <strong>{savedBooks.length} cuốn sách</strong> trong
-              kệ sách cá nhân.
+              You have <strong>{savedBooks.length} book{savedBooks.length === 1 ? "" : "s"}</strong> on your personal shelf.
             </p>
             <Link to="/my-books" className={styles.challengeLink}>
               Go to My Books →

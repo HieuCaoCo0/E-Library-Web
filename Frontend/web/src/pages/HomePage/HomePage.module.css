@@ -130,12 +130,21 @@
   font-weight: 700;
 }
 
-/* Cột giữa: Danh sách sách */
+/* Center Column: Books Catalog */
 .filterHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filterTitleArea {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .resultTitle {
@@ -143,6 +152,50 @@
   font-size: 24px;
   color: #382110;
   margin: 0;
+}
+
+.booksCountBadge {
+  font-size: 14px;
+  color: #706b63;
+  font-weight: 400;
+}
+
+.filterControlsRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sortWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sortLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #55514b;
+  white-space: nowrap;
+}
+
+.sortSelect {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #d8d4c8;
+  background-color: #ffffff;
+  color: #382110;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.sortSelect:focus {
+  border-color: #382110;
+  box-shadow: 0 0 0 2px rgba(56, 33, 16, 0.1);
 }
 
 .clearBtn {

@@ -102,6 +102,11 @@
   margin-bottom: 22px;
 }
 
+.adminRoleBadge {
+  background-color: #276749;
+  color: #ffffff;
+}
+
 .statsGrid {
   width: 100%;
   display: grid;

@@ -9,7 +9,7 @@ const api = axios.create({
   },
 });
 
-export const getApiErrorMessage = (error, fallback = "Đã xảy ra lỗi") => {
+export const getApiErrorMessage = (error, fallback = "An error occurred") => {
   const responseData = error.response?.data;
   const detail = responseData?.detail;
 
@@ -17,7 +17,7 @@ export const getApiErrorMessage = (error, fallback = "Đã xảy ra lỗi") => {
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail[0]?.msg) return detail[0].msg;
 
-  // Bắt lỗi Validation theo từng trường của Django REST Framework (VD: { email: ["Email đã tồn tại"] })
+  // Catch DRF field validation errors (e.g. { email: ["Email already exists"] })
   if (responseData && typeof responseData === "object") {
     const firstKey = Object.keys(responseData)[0];
     const firstError = responseData[firstKey];
@@ -30,13 +30,13 @@ export const getApiErrorMessage = (error, fallback = "Đã xảy ra lỗi") => {
   }
 
   if (error.request && !error.response) {
-    return "Không thể kết nối tới máy chủ. Vui lòng thử lại.";
+    return "Unable to connect to server. Please try again.";
   }
 
   return fallback;
 };
 
-// Kiểm tra xem trình duyệt có lưu token đăng nhập (access_token hoặc refresh_token) không
+// Check if browser has stored access or refresh token
 export const getStoredToken = () => {
   return (
     localStorage.getItem("access_token") ||
@@ -44,14 +44,13 @@ export const getStoredToken = () => {
   );
 };
 
-// Singleton promise quản lý quá trình refresh token để tránh xung đột khi nhiều request gửi cùng lúc
+// Singleton promise managing token refresh to avoid race conditions
 let refreshPromise = null;
 
 export const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem("refresh_token");
   if (!refreshToken) return null;
 
-  // Nếu đã có 1 request đang gọi refresh API, các request khác chỉ việc tái sử dụng Promise này
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -63,18 +62,16 @@ export const refreshAuthToken = async () => {
       });
 
       const newAccessToken = res.data.access;
-      // Backend bật ROTATE_REFRESH_TOKENS = True nên trả về cả refresh_token mới (token cũ bị blacklist)
       const newRefreshToken = res.data.refresh || refreshToken;
 
       localStorage.setItem("access_token", newAccessToken);
       localStorage.setItem("refresh_token", newRefreshToken);
 
-      // Bắn event để Header và các Component biết access_token đã được khôi phục
       window.dispatchEvent(new Event("auth_token_refreshed"));
 
       return newAccessToken;
     } catch (err) {
-      console.warn("Phiên đăng nhập đã hết hạn hoặc refresh_token không hợp lệ:", err);
+      console.warn("Session expired or invalid refresh token:", err);
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");

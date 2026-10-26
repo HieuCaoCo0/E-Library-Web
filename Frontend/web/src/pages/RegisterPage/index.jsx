@@ -30,13 +30,13 @@ export default function RegisterPage() {
     setSuccessMsg("");
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMsg("Mật khẩu nhập lại không khớp!");
+      setErrorMsg("Passwords do not match!");
       return;
     }
 
     setIsLoading(true);
 
-    // Tách tên thành first_name và last_name
+    // Split name into first_name and last_name
     const nameParts = formData.name.trim().split(" ");
     const firstName = nameParts.slice(0, -1).join(" ") || nameParts[0] || "";
     const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
@@ -51,13 +51,13 @@ export default function RegisterPage() {
         last_name: lastName,
       });
 
-      setSuccessMsg("Đăng ký tài khoản thành công! Đang chuyển hướng tới trang Đăng nhập...");
-      toast.success("Đăng ký tài khoản thành công!");
+      setSuccessMsg("Account registered successfully! Redirecting to sign in...");
+      toast.success("Account registered successfully!");
       setTimeout(() => {
         navigate("/login");
       }, 1500);
     } catch (err) {
-      const msg = getApiErrorMessage(err, "Đăng ký không thành công. Vui lòng thử lại.");
+      const msg = getApiErrorMessage(err, "Registration failed. Please try again.");
       setErrorMsg(msg);
       toast.error(msg);
     } finally {
@@ -163,7 +163,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 className={styles.togglePasswordBtn}
-                title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                title={showPassword ? "Hide password" : "Show password"}
                 tabIndex="-1"
               >
                 {showPassword ? (
@@ -201,7 +201,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                 className={styles.togglePasswordBtn}
-                title={showConfirmPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                title={showConfirmPassword ? "Hide password" : "Show password"}
                 tabIndex="-1"
               >
                 {showConfirmPassword ? (

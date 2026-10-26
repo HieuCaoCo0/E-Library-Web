@@ -16,7 +16,7 @@ const formatPublishDate = (dateStr) => {
       const [year, month, day] = parts;
       const d = new Date(Number(year), Number(month) - 1, Number(day));
       if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString("vi-VN", {
+        return d.toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -92,7 +92,7 @@ export default function BookDetailPage() {
         setBook(res.data);
       })
       .catch((err) => {
-        console.error("Lỗi tải chi tiết sách:", err);
+        console.error("Failed to load book details:", err);
       })
       .finally(() => {
         setIsLoadingBook(false);
@@ -108,7 +108,7 @@ export default function BookDetailPage() {
         setReviews(res.data || []);
       })
       .catch((err) => {
-        console.error("Lỗi tải đánh giá:", err);
+        console.error("Failed to load reviews:", err);
         setReviews([]);
       })
       .finally(() => {
@@ -146,7 +146,7 @@ export default function BookDetailPage() {
       localStorage.getItem("access_token") ||
       localStorage.getItem("refresh_token");
     if (!token) {
-      toast.info("Vui lòng đăng nhập để lưu trạng thái đọc.");
+      toast.info("Please sign in to update your reading shelf.");
       navigate("/login");
       return;
     }
@@ -158,9 +158,9 @@ export default function BookDetailPage() {
       });
       setShelfStatus(newStatus);
       setLibraryRecordId(res.data.id);
-      toast.success("Đã cập nhật trạng thái tủ sách!");
+      toast.success("Reading shelf updated!");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể cập nhật trạng thái đọc."));
+      toast.error(getApiErrorMessage(err, "Unable to update reading shelf."));
     }
   };
 
@@ -170,9 +170,9 @@ export default function BookDetailPage() {
       await api.delete(`/api/user-library/${libraryRecordId}/`);
       setLibraryRecordId(null);
       setShelfStatus("want_to_read");
-      toast.info("Đã xóa sách khỏi kệ cá nhân!");
+      toast.info("Removed book from shelf!");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa sách khỏi kệ."));
+      toast.error(getApiErrorMessage(err, "Unable to remove book from shelf."));
     }
   };
 
@@ -202,7 +202,7 @@ export default function BookDetailPage() {
       localStorage.getItem("access_token") ||
       localStorage.getItem("refresh_token");
     if (!token) {
-      toast.info("Vui lòng đăng nhập để viết đánh giá.");
+      toast.info("Please sign in to write a review.");
       navigate("/login");
       return;
     }
@@ -218,7 +218,7 @@ export default function BookDetailPage() {
         });
         setEditingId(null);
         setMyComment("");
-        toast.success("Cập nhật đánh giá thành công!");
+        toast.success("Review updated successfully!");
       } else {
         // Tạo review mới: POST /api/books/{id}/reviews/
         await api.post(`/api/books/${id}/reviews/`, {
@@ -226,11 +226,11 @@ export default function BookDetailPage() {
           comment: myComment.trim(),
         });
         setMyComment("");
-        toast.success("Đăng đánh giá thành công!");
+        toast.success("Review posted successfully!");
       }
       loadReviews();
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể gửi đánh giá. Vui lòng thử lại."));
+      toast.error(getApiErrorMessage(err, "Unable to submit review. Please try again."));
     } finally {
       setIsSubmittingReview(false);
     }
@@ -244,14 +244,14 @@ export default function BookDetailPage() {
   };
 
   const handleDelete = async (reviewId) => {
-    if (!confirm("Bạn có chắc chắn muốn xóa bài đánh giá này?")) return;
+    if (!confirm("Are you sure you want to delete this review?")) return;
 
     try {
       await api.delete(`/api/user-reviews/${reviewId}/`);
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      toast.info("Đã xóa bài đánh giá.");
+      toast.info("Review deleted.");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể xóa bài đánh giá."));
+      toast.error(getApiErrorMessage(err, "Unable to delete review."));
     }
   };
 
@@ -270,7 +270,7 @@ export default function BookDetailPage() {
             alignItems: "center",
           }}
         >
-          Đang tải thông tin cuốn sách...
+          Loading book details...
         </div>
         <Footer />
       </div>
@@ -292,9 +292,9 @@ export default function BookDetailPage() {
             alignItems: "center",
           }}
         >
-          <h2>Không tìm thấy cuốn sách này!</h2>
+          <h2>Book not found!</h2>
           <Link to="/" style={{ color: "#382110", textDecoration: "underline" }}>
-            Quay lại trang chủ
+            Back to Home
           </Link>
         </div>
         <Footer />
@@ -312,7 +312,7 @@ export default function BookDetailPage() {
       <Header />
 
       <main className={styles.container}>
-        {/* CỘT TRÁI: Ảnh bìa & Trạng thái đọc */}
+        {/* LEFT COLUMN: Cover Image & Shelf Status */}
         <aside className={styles.leftCol}>
           <img
             src={book.cover_image || "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80"}
@@ -320,7 +320,7 @@ export default function BookDetailPage() {
             className={styles.coverImg}
           />
 
-          {/* Custom Dropdown Kệ Sách */}
+          {/* Custom Bookshelf Dropdown */}
           <div className={styles.dropdownWrapper} ref={dropdownRef}>
             <button
               type="button"
@@ -388,7 +388,7 @@ export default function BookDetailPage() {
           </div>
         </aside>
 
-        {/* CỘT PHẢI: Chi tiết sách & Bình luận */}
+        {/* RIGHT COLUMN: Book Details & Reviews */}
         <section>
           <h1 className={styles.bookTitle}>{book.title}</h1>
           <div style={{ marginBottom: "12px" }}>
@@ -414,7 +414,7 @@ export default function BookDetailPage() {
             <div className={styles.genreTag}>Genres: {genreName}</div>
             {book.publish_date && (
               <span className={styles.metaInfoBadge}>
-                📅 Xuất bản: {formatPublishDate(book.publish_date)}
+                📅 Published: {formatPublishDate(book.publish_date)}
               </span>
             )}
             {book.source_url && (
@@ -423,18 +423,18 @@ export default function BookDetailPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.sourceLinkBadge}
-                title="Xem nguồn gốc cuốn sách trên Goodreads/Internet"
+                title="View original work on Goodreads/Internet"
               >
-                🔗 Nguồn sách ↗
+                🔗 Original Source ↗
               </a>
             )}
           </div>
 
           <p className={styles.description}>
-            {book.description || "Chưa có thông tin mô tả chi tiết cho cuốn sách này."}
+            {book.description || "No detailed description available for this book."}
           </p>
 
-          {/* KHU VỰC REVIEW */}
+          {/* COMMUNITY REVIEWS */}
           <div className={styles.reviewSection}>
             <h2 className={styles.sectionTitle}>Community Reviews</h2>
 
@@ -498,10 +498,10 @@ export default function BookDetailPage() {
 
             <div className={styles.reviewList}>
               {isLoadingReviews ? (
-                <div style={{ color: "#666", padding: "16px 0" }}>Đang tải đánh giá...</div>
+                <div style={{ color: "#666", padding: "16px 0" }}>Loading reviews...</div>
               ) : reviews.length === 0 ? (
                 <div style={{ color: "#666", padding: "16px 0" }}>
-                  Chưa có bài đánh giá nào cho cuốn sách này. Hãy là người đầu tiên chia sẻ cảm nhận!
+                  No reviews for this book yet. Be the first to share your thoughts!
                 </div>
               ) : (
                 reviews.map((rev) => {
@@ -538,7 +538,7 @@ export default function BookDetailPage() {
                         <div className={styles.reviewHeader}>
                           <div className={styles.reviewerInfo}>
                             <span className={styles.reviewerName}>
-                              {rev.username || rev.user?.username || "Độc giả"}
+                              {rev.username || rev.user?.username || "Reader"}
                             </span>
                             <span className={styles.reviewStars}>
                               {"★".repeat(rev.rating)}
@@ -546,8 +546,12 @@ export default function BookDetailPage() {
                           </div>
                           <span className={styles.reviewDate}>
                             {rev.created_at
-                              ? new Date(rev.created_at).toLocaleDateString("vi-VN")
-                              : "Gần đây"}
+                              ? new Date(rev.created_at).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })
+                              : "Recently"}
                           </span>
                         </div>
                         <p className={styles.reviewComment}>{rev.comment}</p>

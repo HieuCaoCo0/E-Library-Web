@@ -48,7 +48,7 @@ export default function Modal({
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
-            aria-label="Đóng popup"
+            aria-label="Close modal"
           >
             ✕
           </button>

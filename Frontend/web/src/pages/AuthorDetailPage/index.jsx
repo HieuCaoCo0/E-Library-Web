@@ -10,7 +10,6 @@ export default function AuthorDetailPage() {
   const { id } = useParams();
   const [author, setAuthor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFollowing, setIsFollowing] = useState(false);
   const [savedBooks, setSavedBooks] = useState([]);
 
   // Lấy chi tiết tác giả từ API GET /api/authors/{id}/
@@ -22,7 +21,7 @@ export default function AuthorDetailPage() {
         setAuthor(res.data);
       })
       .catch((err) => {
-        console.error("Lỗi tải chi tiết tác giả:", err);
+        console.error("Failed to load author details:", err);
       })
       .finally(() => {
         setIsLoading(false);
@@ -50,7 +49,7 @@ export default function AuthorDetailPage() {
       localStorage.getItem("access_token") ||
       localStorage.getItem("refresh_token");
     if (!token) {
-      toast.info("Bạn cần đăng nhập để lưu sách vào kệ!");
+      toast.info("Please sign in to save books to your shelf!");
       return;
     }
 
@@ -62,9 +61,9 @@ export default function AuthorDetailPage() {
       setSavedBooks((prev) =>
         prev.includes(bookId) ? prev : [...prev, bookId],
       );
-      toast.success("Đã lưu sách vào kệ muốn đọc!");
+      toast.success("Saved book to Want to Read shelf!");
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Không thể lưu sách vào kệ."));
+      toast.error(getApiErrorMessage(err, "Unable to save book to shelf."));
     }
   };
 
@@ -83,7 +82,7 @@ export default function AuthorDetailPage() {
             alignItems: "center",
           }}
         >
-          Đang tải thông tin tác giả...
+          Loading author details...
         </div>
         <Footer />
       </div>
@@ -105,9 +104,9 @@ export default function AuthorDetailPage() {
             alignItems: "center",
           }}
         >
-          <h2>Không tìm thấy thông tin tác giả!</h2>
+          <h2>Author not found!</h2>
           <Link to="/authors" style={{ color: "#382110", textDecoration: "underline" }}>
-            Quay lại danh sách tác giả
+            Back to Authors Directory
           </Link>
         </div>
         <Footer />
@@ -122,20 +121,11 @@ export default function AuthorDetailPage() {
       <Header />
 
       <main className={styles.container}>
-        {/* CỘT TRÁI: Avatar & Thông tin tóm tắt */}
+        {/* LEFT COLUMN: Avatar & Summary Info */}
         <aside className={styles.leftCol}>
           <div className={styles.avatarBox}>
             {author.name ? author.name.charAt(0) : "A"}
           </div>
-
-          <button
-            onClick={() => setIsFollowing(!isFollowing)}
-            className={`${styles.followBtn} ${
-              isFollowing ? styles.followingBtn : ""
-            }`}
-          >
-            {isFollowing ? "✓ Following Author" : "+ Follow Author"}
-          </button>
 
           <div className={styles.infoCard}>
             <div className={styles.infoRow}>
@@ -147,23 +137,23 @@ export default function AuthorDetailPage() {
           </div>
         </aside>
 
-        {/* CỘT PHẢI: Tiểu sử & Danh sách sách của tác giả */}
+        {/* RIGHT COLUMN: Bio & Author's Books */}
         <section>
           <h1 className={styles.authorName}>{author.name}</h1>
 
           <div className={styles.statsBar}>
             <span className={styles.stars}>★★★★★</span>
             <span>
-              <strong>{booksList.length}</strong> đầu sách trong hệ thống
+              <strong>{booksList.length}</strong> books in library
             </span>
           </div>
 
           <h2 className={styles.bioTitle}>About the Author</h2>
           <p className={styles.bioText}>
-            {author.bio || `${author.name} là tác giả có nhiều đầu sách được bạn đọc yêu thích tại E-Library.`}
+            {author.bio || `${author.name} is a renowned author with popular works in the E-Library catalog.`}
           </p>
 
-          {/* Danh sách sách của tác giả */}
+          {/* Author's Books List */}
           <div className={styles.booksSection}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
@@ -172,7 +162,7 @@ export default function AuthorDetailPage() {
             </div>
 
             {booksList.length === 0 ? (
-              <p style={{ color: "#666" }}>Chưa có cuốn sách nào của tác giả này trong thư viện.</p>
+              <p style={{ color: "#666" }}>No books found for this author in the library.</p>
             ) : (
               <div className={styles.bookList}>
                 {booksList.map((book) => {
@@ -200,7 +190,7 @@ export default function AuthorDetailPage() {
                               {book.rating ? Number(book.rating).toFixed(1) : "0.0"} rating ({book.pages || "N/A"} pages)
                             </span>
                           </div>
-                          <p className={styles.bookDesc}>{book.description || `Xuất bản: ${book.publish_date || "N/A"}`}</p>
+                          <p className={styles.bookDesc}>{book.description || `Published: ${book.publish_date || "N/A"}`}</p>
                         </div>
                       </div>
 
