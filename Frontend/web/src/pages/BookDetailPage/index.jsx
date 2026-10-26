@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import styles from "./BookDetailPage.module.css";
 import Footer from "../../components/Footer";
+import ConfirmModal from "../../components/ConfirmModal";
 import avatarDefault from "../../assets/avatar.png";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
@@ -71,6 +72,8 @@ export default function BookDetailPage() {
   const [editingId, setEditingId] = useState(null);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
+  const [isDeletingReview, setIsDeletingReview] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -79,6 +82,19 @@ export default function BookDetailPage() {
         setCurrentUser(JSON.parse(userStr));
       } catch {
         // ignore
+      }
+    } else {
+      const token =
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("refresh_token");
+      if (token) {
+        api
+          .get("/api/users/profile/")
+          .then((res) => {
+            setCurrentUser(res.data);
+            localStorage.setItem("user", JSON.stringify(res.data));
+          })
+          .catch(() => {});
       }
     }
   }, []);
@@ -119,6 +135,28 @@ export default function BookDetailPage() {
   useEffect(() => {
     loadReviews();
   }, [id]);
+
+  // Tự động nhận diện bài review đã có của currentUser
+  const myExistingReview = reviews.find(
+    (rev) =>
+      currentUser &&
+      (rev.user === currentUser.id || rev.username === currentUser.username)
+  );
+
+  // Tự động điền review cũ vào form để chuyển sang chế độ cập nhật
+  useEffect(() => {
+    if (!currentUser || isLoadingReviews) return;
+
+    if (myExistingReview) {
+      setEditingId(myExistingReview.id);
+      setMyRating(myExistingReview.rating);
+      setMyComment(myExistingReview.comment);
+    } else {
+      setEditingId(null);
+      setMyRating(5);
+      setMyComment("");
+    }
+  }, [currentUser?.id, currentUser?.username, myExistingReview?.id, isLoadingReviews]);
 
   // 3. Kiểm tra trạng thái kệ sách hiện tại của user cho cuốn sách này
   useEffect(() => {
@@ -216,8 +254,6 @@ export default function BookDetailPage() {
           rating: myRating,
           comment: myComment.trim(),
         });
-        setEditingId(null);
-        setMyComment("");
         toast.success("Review updated successfully!");
       } else {
         // Tạo review mới: POST /api/books/{id}/reviews/
@@ -225,7 +261,6 @@ export default function BookDetailPage() {
           rating: myRating,
           comment: myComment.trim(),
         });
-        setMyComment("");
         toast.success("Review posted successfully!");
       }
       loadReviews();
@@ -240,18 +275,32 @@ export default function BookDetailPage() {
     setEditingId(rev.id);
     setMyRating(rev.rating);
     setMyComment(rev.comment);
-    window.scrollTo({ top: 400, behavior: "smooth" });
+    const formSection = document.getElementById("review-form-section");
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 400, behavior: "smooth" });
+    }
   };
 
-  const handleDelete = async (reviewId) => {
-    if (!confirm("Are you sure you want to delete this review?")) return;
+  const handleConfirmDeleteReview = async () => {
+    if (!reviewToDelete) return;
 
+    setIsDeletingReview(true);
     try {
-      await api.delete(`/api/user-reviews/${reviewId}/`);
-      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      await api.delete(`/api/user-reviews/${reviewToDelete}/`);
+      setReviews((prev) => prev.filter((r) => r.id !== reviewToDelete));
+      if (editingId === reviewToDelete) {
+        setEditingId(null);
+        setMyRating(5);
+        setMyComment("");
+      }
       toast.info("Review deleted.");
+      setReviewToDelete(null);
     } catch (err) {
       toast.error(getApiErrorMessage(err, "Unable to delete review."));
+    } finally {
+      setIsDeletingReview(false);
     }
   };
 
@@ -435,8 +484,17 @@ export default function BookDetailPage() {
           </p>
 
           {/* COMMUNITY REVIEWS */}
-          <div className={styles.reviewSection}>
+          <div className={styles.reviewSection} id="review-form-section">
             <h2 className={styles.sectionTitle}>Community Reviews</h2>
+
+            {myExistingReview && (
+              <div className={styles.existingReviewNotice}>
+                <span className={styles.noticeIcon}>ℹ️</span>
+                <span>
+                  You have already reviewed this book. Modifying your rating or comment below will update your review.
+                </span>
+              </div>
+            )}
 
             <form onSubmit={handleSubmitReview} className={styles.reviewForm}>
               <div className={styles.starPicker}>
@@ -463,7 +521,7 @@ export default function BookDetailPage() {
                 required
               />
 
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                 <button
                   type="submit"
                   className={styles.submitBtn}
@@ -475,23 +533,43 @@ export default function BookDetailPage() {
                       ? "Update Review"
                       : "Post Review"}
                 </button>
-                {editingId && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(null);
-                      setMyComment("");
-                    }}
-                    style={{
-                      padding: "8px 14px",
-                      background: "#f4f1ea",
-                      border: "1px solid #d8d4c8",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel Edit
-                  </button>
+                {myExistingReview ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMyRating(myExistingReview.rating);
+                        setMyComment(myExistingReview.comment);
+                        toast.info("Reset to your saved review.");
+                      }}
+                      className={styles.resetBtn}
+                      title="Reset changes back to your saved review"
+                    >
+                      Reset Changes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setReviewToDelete(myExistingReview.id)}
+                      className={styles.deleteReviewBtn}
+                      title="Delete your review"
+                    >
+                      Delete Review
+                    </button>
+                  </>
+                ) : (
+                  editingId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(null);
+                        setMyComment("");
+                        setMyRating(5);
+                      }}
+                      className={styles.resetBtn}
+                    >
+                      Cancel Edit
+                    </button>
+                  )
                 )}
               </div>
             </form>
@@ -565,7 +643,7 @@ export default function BookDetailPage() {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(rev.id)}
+                              onClick={() => setReviewToDelete(rev.id)}
                               className={`${styles.actionBtn} ${styles.deleteBtn}`}
                             >
                               Delete
@@ -581,6 +659,18 @@ export default function BookDetailPage() {
           </div>
         </section>
       </main>
+
+      <ConfirmModal
+        isOpen={Boolean(reviewToDelete)}
+        onClose={() => setReviewToDelete(null)}
+        onConfirm={handleConfirmDeleteReview}
+        title="Delete Review"
+        message="Are you sure you want to delete your review for this book? This action cannot be undone."
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeletingReview}
+      />
 
       <Footer />
     </div>

@@ -191,6 +191,19 @@ export default function AuthorDetailPage() {
                             </span>
                           </div>
                           <p className={styles.bookDesc}>{book.description || `Published: ${book.publish_date || "N/A"}`}</p>
+                          {book.source_url && (
+                            <div style={{ marginTop: "8px" }}>
+                              <a
+                                href={book.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.sourceLinkBadge}
+                                title="View original work on Goodreads/Internet"
+                              >
+                                🔗 Original Source ↗
+                              </a>
+                            </div>
+                          )}
                         </div>
                       </div>
 

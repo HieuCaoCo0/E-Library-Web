@@ -4,8 +4,16 @@ import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import Modal from "../../components/Modal";
+import ConfirmModal from "../../components/ConfirmModal";
 import styles from "./AdminPage.module.css";
 import api, { getApiErrorMessage } from "../../plugins/axios";
+
+// Helper to format rating: defaults to "0.0" if missing, null, zero, or error
+function formatRating(val) {
+  if (val == null || val === "" || isNaN(val)) return "0.0";
+  const num = Number(val);
+  return num === 0 ? "0.0" : String(num);
+}
 
 // Helper to generate compact pagination items
 function getPaginationItems(current, total) {
@@ -134,8 +142,8 @@ export default function AdminPage() {
 
   const isAdmin = Boolean(
     currentUser?.is_staff ||
-      currentUser?.is_superuser ||
-      currentUser?.username === "admin"
+    currentUser?.is_superuser ||
+    currentUser?.username === "admin",
   );
 
   // -------------------------------------------------------------
@@ -157,9 +165,10 @@ export default function AdminPage() {
   // Fetch genres list for book genre picker
   const fetchAllGenresForPicker = async () => {
     try {
-      const res = await api.get("/api/genres/?page=1");
+      const res = await api.get("/api/genres/?page_size=500");
       const list = res.data?.results || res.data || [];
       setAllGenresList(list);
+      setGenreTotalCount(res.data?.count || list.length);
     } catch (err) {
       console.error("Failed to load genres:", err);
     }
@@ -180,6 +189,8 @@ export default function AdminPage() {
   const [bookTotalPages, setBookTotalPages] = useState(1);
   const [isLoadingBooks, setIsLoadingBooks] = useState(false);
   const [isSubmittingBook, setIsSubmittingBook] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeletingTarget, setIsDeletingTarget] = useState(false);
 
   const initialBookForm = {
     id: null,
@@ -187,6 +198,7 @@ export default function AdminPage() {
     author: "",
     genres: [],
     pages: "",
+    rating: "",
     publish_date: "",
     cover_image: "",
     source_url: "",
@@ -243,6 +255,7 @@ export default function AdminPage() {
       author: book.author_id || "",
       genres: book.genre_ids || [],
       pages: book.pages ?? "",
+      rating: book.rating ?? "",
       publish_date: book.publish_date || "",
       cover_image: book.cover_image || "",
       source_url: book.source_url || "",
@@ -251,7 +264,7 @@ export default function AdminPage() {
     setIsBookModalOpen(true);
   };
 
-  // Save book (POST or PUT)
+  // Save book (POST or PATCH)
   const handleSaveBook = async (e) => {
     e.preventDefault();
 
@@ -267,15 +280,19 @@ export default function AdminPage() {
       author: Number(bookForm.author),
       genres: bookForm.genres,
       pages: bookForm.pages ? Number(bookForm.pages) : null,
+      rating:
+        bookForm.rating !== "" && bookForm.rating != null
+          ? Number(bookForm.rating)
+          : null,
       publish_date: bookForm.publish_date || null,
       cover_image: bookForm.cover_image.trim(),
-      source_url: bookForm.source_url.trim(),
+      source_url: bookForm.source_url.trim() || null,
       description: bookForm.description.trim(),
     };
 
     try {
       if (bookForm.id) {
-        await api.put(`/api/books/${bookForm.id}/`, payload);
+        await api.patch(`/api/books/${bookForm.id}/`, payload);
         toast.success(`Successfully updated book "${payload.title}"!`);
       } else {
         await api.post("/api/books/", payload);
@@ -291,23 +308,18 @@ export default function AdminPage() {
     }
   };
 
-  // Delete book (DELETE /api/books/<id>/)
-  const handleDeleteBook = async (book) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${book.title}" (ID: #${book.id})? This action cannot be undone.`
-    );
-    if (!confirmed) return;
-
-    try {
-      await api.delete(`/api/books/${book.id}/`);
-      toast.success(`Successfully deleted book "${book.title}"!`);
-      if (bookForm.id === book.id) {
-        setBookForm(initialBookForm);
-      }
-      fetchBooks(currentPage, activeSearch);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Unable to delete book"));
-    }
+  // Delete book (Trigger confirm modal)
+  const handleDeleteBook = (book) => {
+    setDeleteTarget({
+      type: "book",
+      item: book,
+      title: "Delete Book",
+      message: (
+        <span>
+          Are you sure you want to delete the book <strong>&quot;{book.title}&quot;</strong> (ID: #{book.id})? This action cannot be undone.
+        </span>
+      ),
+    });
   };
 
   // -------------------------------------------------------------
@@ -321,16 +333,18 @@ export default function AdminPage() {
 
   // Filter authors by search keyword
   const filteredAuthors = allAuthors.filter((a) =>
-    activeSearch ? a.name.toLowerCase().includes(activeSearch.toLowerCase()) : true
+    activeSearch
+      ? a.name.toLowerCase().includes(activeSearch.toLowerCase())
+      : true,
   );
 
   const authorTotalPages = Math.max(
     1,
-    Math.ceil(filteredAuthors.length / authorsPerPage)
+    Math.ceil(filteredAuthors.length / authorsPerPage),
   );
   const paginatedAuthors = filteredAuthors.slice(
     (currentPage - 1) * authorsPerPage,
-    currentPage * authorsPerPage
+    currentPage * authorsPerPage,
   );
 
   // Start editing author (open modal)
@@ -365,23 +379,18 @@ export default function AdminPage() {
     }
   };
 
-  // Delete Author (DELETE /api/authors/<id>/)
-  const handleDeleteAuthor = async (author) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete author "${author.name}" (ID: #${author.id})? Note: If this author has linked books, the action may be rejected.`
-    );
-    if (!confirmed) return;
-
-    try {
-      await api.delete(`/api/authors/${author.id}/`);
-      toast.success(`Successfully deleted author "${author.name}"!`);
-      if (authorForm.id === author.id) {
-        setAuthorForm(initialAuthorForm);
-      }
-      await fetchAllAuthors();
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Unable to delete author"));
-    }
+  // Delete Author (Trigger confirm modal)
+  const handleDeleteAuthor = (author) => {
+    setDeleteTarget({
+      type: "author",
+      item: author,
+      title: "Delete Author",
+      message: (
+        <span>
+          Are you sure you want to delete author <strong>&quot;{author.name}&quot;</strong> (ID: #{author.id})? If this author has linked books, the server may reject the deletion.
+        </span>
+      ),
+    });
   };
 
   // -------------------------------------------------------------
@@ -456,23 +465,54 @@ export default function AdminPage() {
     }
   };
 
-  // Delete Genre (DELETE /api/genres/<id>/)
-  const handleDeleteGenre = async (genre) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete genre "${genre.name}" (ID: #${genre.id})? Note: Linked books will have this genre removed.`
-    );
-    if (!confirmed) return;
+  // Delete Genre (Trigger confirm modal)
+  const handleDeleteGenre = (genre) => {
+    setDeleteTarget({
+      type: "genre",
+      item: genre,
+      title: "Delete Genre",
+      message: (
+        <span>
+          Are you sure you want to delete genre <strong>&quot;{genre.name}&quot;</strong> (ID: #{genre.id})? Linked books will have this genre unassigned.
+        </span>
+      ),
+    });
+  };
 
+  // Centralized confirmation handler for all Admin deletions
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setIsDeletingTarget(true);
     try {
-      await api.delete(`/api/genres/${genre.id}/`);
-      toast.success(`Successfully deleted genre "${genre.name}"!`);
-      if (genreForm.id === genre.id) {
-        setGenreForm(initialGenreForm);
+      if (deleteTarget.type === "book") {
+        await api.delete(`/api/books/${deleteTarget.item.id}/`);
+        toast.success(`Successfully deleted book "${deleteTarget.item.title}"!`);
+        if (bookForm.id === deleteTarget.item.id) {
+          setBookForm(initialBookForm);
+        }
+        fetchBooks(currentPage, activeSearch);
+      } else if (deleteTarget.type === "author") {
+        await api.delete(`/api/authors/${deleteTarget.item.id}/`);
+        toast.success(`Successfully deleted author "${deleteTarget.item.name}"!`);
+        if (authorForm.id === deleteTarget.item.id) {
+          setAuthorForm(initialAuthorForm);
+        }
+        await fetchAllAuthors();
+      } else if (deleteTarget.type === "genre") {
+        await api.delete(`/api/genres/${deleteTarget.item.id}/`);
+        toast.success(`Successfully deleted genre "${deleteTarget.item.name}"!`);
+        if (genreForm.id === deleteTarget.item.id) {
+          setGenreForm(initialGenreForm);
+        }
+        fetchGenres(currentPage, activeSearch);
+        fetchAllGenresForPicker();
       }
-      fetchGenres(currentPage, activeSearch);
-      fetchAllGenresForPicker();
+      setDeleteTarget(null);
     } catch (err) {
-      toast.error(getApiErrorMessage(err, "Unable to delete genre"));
+      toast.error(getApiErrorMessage(err, `Unable to delete ${deleteTarget.type}`));
+    } finally {
+      setIsDeletingTarget(false);
     }
   };
 
@@ -534,10 +574,18 @@ export default function AdminPage() {
               fontSize: "16px",
             }}
           >
-            The Admin Dashboard is restricted to Administrator accounts (Staff / Superuser).
-            Please sign in with an authorized account to access this page.
+            The Admin Dashboard is restricted to Administrator accounts (Staff /
+            Superuser). Please sign in with an authorized account to access this
+            page.
           </p>
-          <div style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "14px",
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <Link
               to="/login"
               style={{
@@ -593,8 +641,9 @@ export default function AdminPage() {
         <div className={styles.authBannerSuccess}>
           <span>🟢</span>
           <span>
-            Operating as Administrator: <strong>{currentUser?.username || "admin"}</strong>{" "}
-            (Staff / Superuser) — Full catalog management permissions.
+            Operating as Administrator:{" "}
+            <strong>{currentUser?.username || "admin"}</strong> (Staff /
+            Superuser) — Full catalog management permissions.
           </span>
         </div>
 
@@ -617,7 +666,9 @@ export default function AdminPage() {
           <div className={styles.statCard}>
             <div className={styles.statIcon}>🏷️</div>
             <div>
-              <div className={styles.statValue}>{genreTotalCount || allGenresList.length}</div>
+              <div className={styles.statValue}>
+                {genreTotalCount || allGenresList.length}
+              </div>
               <div className={styles.statLabel}>Book Genres</div>
             </div>
           </div>
@@ -683,7 +734,13 @@ export default function AdminPage() {
                 }}
                 className={styles.addNewBtn}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
@@ -694,7 +751,9 @@ export default function AdminPage() {
             {/* BOOKS DATA TABLE */}
             <div className={styles.tableWrapper}>
               {isLoadingBooks ? (
-                <div className={styles.loadingState}>Loading books from server...</div>
+                <div className={styles.loadingState}>
+                  Loading books from server...
+                </div>
               ) : books.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>📖</div>
@@ -719,40 +778,55 @@ export default function AdminPage() {
                         <td>#{book.id}</td>
                         <td className={styles.bookThumbCell}>
                           <img
-                            src={book.cover_image || "https://placehold.co/40x60?text=No+Cover"}
+                            src={
+                              book.cover_image ||
+                              "https://placehold.co/40x60?text=No+Cover"
+                            }
                             alt={book.title}
                             className={styles.bookThumb}
                             onError={(e) => {
-                              e.target.src = "https://placehold.co/40x60?text=Cover";
+                              e.target.src =
+                                "https://placehold.co/40x60?text=Cover";
                             }}
                           />
                         </td>
                         <td className={styles.itemName}>
-                          <Link to={`/books/${book.id}`} className={styles.bookLink}>
+                          <Link
+                            to={`/books/${book.id}`}
+                            className={styles.bookLink}
+                          >
                             {book.title}
                           </Link>
                         </td>
                         <td>{book.author || "Unknown"}</td>
                         <td>
                           <div className={styles.genreTags}>
-                            {Array.isArray(book.genres) && book.genres.length > 0 ? (
+                            {Array.isArray(book.genres) &&
+                            book.genres.length > 0 ? (
                               book.genres.slice(0, 3).map((g, idx) => (
                                 <span key={idx} className={styles.genreTag}>
                                   {g}
                                 </span>
                               ))
                             ) : (
-                              <span style={{ color: "#999", fontSize: "12px" }}>None</span>
+                              <span style={{ color: "#999", fontSize: "12px" }}>
+                                None
+                              </span>
                             )}
-                            {Array.isArray(book.genres) && book.genres.length > 3 && (
-                              <span className={styles.genreTag}>+{book.genres.length - 3}</span>
-                            )}
+                            {Array.isArray(book.genres) &&
+                              book.genres.length > 3 && (
+                                <span className={styles.genreTag}>
+                                  +{book.genres.length - 3}
+                                </span>
+                              )}
                           </div>
                         </td>
                         <td style={{ fontSize: "13px" }}>
-                          ⭐ {book.avg_rating || book.rating || "N/A"}
+                          ⭐ {formatRating(book.avg_rating ?? book.rating)}
                           <br />
-                          <span style={{ color: "#777" }}>{book.pages ? `${book.pages} pages` : "N/A"}</span>
+                          <span style={{ color: "#777" }}>
+                            {book.pages ? `${book.pages} pages` : "N/A"}
+                          </span>
                         </td>
                         <td>
                           <div className={styles.actionGroup}>
@@ -782,7 +856,8 @@ export default function AdminPage() {
             {/* PAGINATION FOR BOOKS (?page=X) */}
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Showing page <strong>{currentPage}</strong> of <strong>{bookTotalPages}</strong> ({bookTotalCount} books)
+                Showing page <strong>{currentPage}</strong> of{" "}
+                <strong>{bookTotalPages}</strong> ({bookTotalCount} books)
               </div>
               {bookTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -795,26 +870,28 @@ export default function AdminPage() {
                     « Previous
                   </button>
 
-                  {getPaginationItems(currentPage, bookTotalPages).map((item, idx) => {
-                    if (typeof item === "string") {
+                  {getPaginationItems(currentPage, bookTotalPages).map(
+                    (item, idx) => {
+                      if (typeof item === "string") {
+                        return (
+                          <span key={`dots-${idx}`} className={styles.ellipsis}>
+                            ...
+                          </span>
+                        );
+                      }
+                      const isCur = item === currentPage;
                       return (
-                        <span key={`dots-${idx}`} className={styles.ellipsis}>
-                          ...
-                        </span>
+                        <button
+                          key={`page-${item}`}
+                          type="button"
+                          onClick={() => handlePageChange(item)}
+                          className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
+                        >
+                          {item}
+                        </button>
                       );
-                    }
-                    const isCur = item === currentPage;
-                    return (
-                      <button
-                        key={`page-${item}`}
-                        type="button"
-                        onClick={() => handlePageChange(item)}
-                        className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
+                    },
+                  )}
 
                   <button
                     type="button"
@@ -867,7 +944,13 @@ export default function AdminPage() {
                 }}
                 className={styles.addNewBtn}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
@@ -897,7 +980,10 @@ export default function AdminPage() {
                         <td>#{author.id}</td>
                         <td className={styles.itemName}>{author.name}</td>
                         <td>
-                          <Link to={`/authors/${author.id}`} className={styles.bookLink}>
+                          <Link
+                            to={`/authors/${author.id}`}
+                            className={styles.bookLink}
+                          >
                             View Author Profile ↗
                           </Link>
                         </td>
@@ -928,7 +1014,9 @@ export default function AdminPage() {
 
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Showing page <strong>{currentPage}</strong> of <strong>{authorTotalPages}</strong> ({filteredAuthors.length} authors)
+                Showing page <strong>{currentPage}</strong> of{" "}
+                <strong>{authorTotalPages}</strong> ({filteredAuthors.length}{" "}
+                authors)
               </div>
               {authorTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -941,26 +1029,28 @@ export default function AdminPage() {
                     « Previous
                   </button>
 
-                  {getPaginationItems(currentPage, authorTotalPages).map((item, idx) => {
-                    if (typeof item === "string") {
+                  {getPaginationItems(currentPage, authorTotalPages).map(
+                    (item, idx) => {
+                      if (typeof item === "string") {
+                        return (
+                          <span key={`dots-${idx}`} className={styles.ellipsis}>
+                            ...
+                          </span>
+                        );
+                      }
+                      const isCur = item === currentPage;
                       return (
-                        <span key={`dots-${idx}`} className={styles.ellipsis}>
-                          ...
-                        </span>
+                        <button
+                          key={`page-${item}`}
+                          type="button"
+                          onClick={() => handlePageChange(item)}
+                          className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
+                        >
+                          {item}
+                        </button>
                       );
-                    }
-                    const isCur = item === currentPage;
-                    return (
-                      <button
-                        key={`page-${item}`}
-                        type="button"
-                        onClick={() => handlePageChange(item)}
-                        className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
+                    },
+                  )}
 
                   <button
                     type="button"
@@ -1013,7 +1103,13 @@ export default function AdminPage() {
                 }}
                 className={styles.addNewBtn}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
@@ -1023,7 +1119,9 @@ export default function AdminPage() {
 
             <div className={styles.tableWrapper}>
               {isLoadingGenres ? (
-                <div className={styles.loadingState}>Loading genres from server...</div>
+                <div className={styles.loadingState}>
+                  Loading genres from server...
+                </div>
               ) : genres.length === 0 ? (
                 <div className={styles.emptyState}>
                   <div className={styles.emptyStateIcon}>🏷️</div>
@@ -1045,7 +1143,10 @@ export default function AdminPage() {
                         <td>#{genre.id}</td>
                         <td className={styles.itemName}>{genre.name}</td>
                         <td>
-                          <span style={{ fontWeight: 600 }}>{genre.book_count ?? 0}</span> books
+                          <span style={{ fontWeight: 600 }}>
+                            {genre.book_count ?? 0}
+                          </span>{" "}
+                          books
                         </td>
                         <td>
                           <div className={styles.actionGroup}>
@@ -1074,7 +1175,8 @@ export default function AdminPage() {
 
             <div className={styles.paginationRow}>
               <div className={styles.pageInfo}>
-                Showing page <strong>{currentPage}</strong> of <strong>{genreTotalPages}</strong> ({genreTotalCount} genres)
+                Showing page <strong>{currentPage}</strong> of{" "}
+                <strong>{genreTotalPages}</strong> ({genreTotalCount} genres)
               </div>
               {genreTotalPages > 1 && (
                 <div className={styles.pageButtons}>
@@ -1087,26 +1189,28 @@ export default function AdminPage() {
                     « Previous
                   </button>
 
-                  {getPaginationItems(currentPage, genreTotalPages).map((item, idx) => {
-                    if (typeof item === "string") {
+                  {getPaginationItems(currentPage, genreTotalPages).map(
+                    (item, idx) => {
+                      if (typeof item === "string") {
+                        return (
+                          <span key={`dots-${idx}`} className={styles.ellipsis}>
+                            ...
+                          </span>
+                        );
+                      }
+                      const isCur = item === currentPage;
                       return (
-                        <span key={`dots-${idx}`} className={styles.ellipsis}>
-                          ...
-                        </span>
+                        <button
+                          key={`page-${item}`}
+                          type="button"
+                          onClick={() => handlePageChange(item)}
+                          className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
+                        >
+                          {item}
+                        </button>
                       );
-                    }
-                    const isCur = item === currentPage;
-                    return (
-                      <button
-                        key={`page-${item}`}
-                        type="button"
-                        onClick={() => handlePageChange(item)}
-                        className={`${styles.pageBtn} ${isCur ? styles.pageBtnActive : ""}`}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
+                    },
+                  )}
 
                   <button
                     type="button"
@@ -1140,7 +1244,9 @@ export default function AdminPage() {
               className={styles.input}
               placeholder="e.g. A Brief History of Time"
               value={bookForm.title}
-              onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })}
+              onChange={(e) =>
+                setBookForm({ ...bookForm, title: e.target.value })
+              }
               required
             />
           </div>
@@ -1150,7 +1256,9 @@ export default function AdminPage() {
             <select
               className={styles.select}
               value={bookForm.author}
-              onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })}
+              onChange={(e) =>
+                setBookForm({ ...bookForm, author: e.target.value })
+              }
               required
             >
               <option value="">-- Select an Author --</option>
@@ -1186,6 +1294,22 @@ export default function AdminPage() {
 
           <div className={styles.fieldRow}>
             <div className={styles.field}>
+              <label className={styles.label}>Rating (0 - 5)</label>
+              <input
+                type="number"
+                min="0"
+                max="5"
+                step="0.01"
+                className={styles.input}
+                placeholder="4.5"
+                value={bookForm.rating}
+                onChange={(e) =>
+                  setBookForm({ ...bookForm, rating: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.field}>
               <label className={styles.label}>Pages</label>
               <input
                 type="number"
@@ -1193,7 +1317,9 @@ export default function AdminPage() {
                 className={styles.input}
                 placeholder="320"
                 value={bookForm.pages}
-                onChange={(e) => setBookForm({ ...bookForm, pages: e.target.value })}
+                onChange={(e) =>
+                  setBookForm({ ...bookForm, pages: e.target.value })
+                }
               />
             </div>
 
@@ -1203,7 +1329,9 @@ export default function AdminPage() {
                 type="date"
                 className={styles.input}
                 value={bookForm.publish_date}
-                onChange={(e) => setBookForm({ ...bookForm, publish_date: e.target.value })}
+                onChange={(e) =>
+                  setBookForm({ ...bookForm, publish_date: e.target.value })
+                }
               />
             </div>
           </div>
@@ -1215,7 +1343,9 @@ export default function AdminPage() {
               className={styles.input}
               placeholder="https://images.example.com/cover.jpg"
               value={bookForm.cover_image}
-              onChange={(e) => setBookForm({ ...bookForm, cover_image: e.target.value })}
+              onChange={(e) =>
+                setBookForm({ ...bookForm, cover_image: e.target.value })
+              }
             />
             {bookForm.cover_image && (
               <div className={styles.imagePreviewRow}>
@@ -1227,19 +1357,25 @@ export default function AdminPage() {
                     e.target.style.display = "none";
                   }}
                 />
-                <span style={{ fontSize: "12px", color: "#666" }}>Cover Image Preview</span>
+                <span style={{ fontSize: "12px", color: "#666" }}>
+                  Cover Image Preview
+                </span>
               </div>
             )}
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Source URL (Original book / purchase link)</label>
+            <label className={styles.label}>
+              Source URL (Original book / purchase link)
+            </label>
             <input
               type="url"
               className={styles.input}
               placeholder="https://..."
               value={bookForm.source_url}
-              onChange={(e) => setBookForm({ ...bookForm, source_url: e.target.value })}
+              onChange={(e) =>
+                setBookForm({ ...bookForm, source_url: e.target.value })
+              }
             />
           </div>
 
@@ -1249,7 +1385,9 @@ export default function AdminPage() {
               className={styles.textarea}
               placeholder="Brief description or synopsis of the book..."
               value={bookForm.description}
-              onChange={(e) => setBookForm({ ...bookForm, description: e.target.value })}
+              onChange={(e) =>
+                setBookForm({ ...bookForm, description: e.target.value })
+              }
             />
           </div>
 
@@ -1269,8 +1407,8 @@ export default function AdminPage() {
               {isSubmittingBook
                 ? "Saving..."
                 : bookForm.id
-                ? "Update Book"
-                : "+ Create Book"}
+                  ? "Update Book"
+                  : "+ Create Book"}
             </button>
           </div>
         </form>
@@ -1282,7 +1420,9 @@ export default function AdminPage() {
       <Modal
         isOpen={isAuthorModalOpen}
         onClose={() => setIsAuthorModalOpen(false)}
-        title={authorForm.id ? `Edit Author #${authorForm.id}` : "Add New Author"}
+        title={
+          authorForm.id ? `Edit Author #${authorForm.id}` : "Add New Author"
+        }
         maxWidth="480px"
       >
         <form onSubmit={handleSaveAuthor}>
@@ -1293,7 +1433,9 @@ export default function AdminPage() {
               className={styles.input}
               placeholder="e.g. J.K. Rowling"
               value={authorForm.name}
-              onChange={(e) => setAuthorForm({ ...authorForm, name: e.target.value })}
+              onChange={(e) =>
+                setAuthorForm({ ...authorForm, name: e.target.value })
+              }
               required
               autoFocus
             />
@@ -1315,8 +1457,8 @@ export default function AdminPage() {
               {isSubmittingAuthor
                 ? "Saving..."
                 : authorForm.id
-                ? "Update Author"
-                : "+ Create Author"}
+                  ? "Update Author"
+                  : "+ Create Author"}
             </button>
           </div>
         </form>
@@ -1339,7 +1481,9 @@ export default function AdminPage() {
               className={styles.input}
               placeholder="e.g. Science Fiction, Dystopia..."
               value={genreForm.name}
-              onChange={(e) => setGenreForm({ ...genreForm, name: e.target.value })}
+              onChange={(e) =>
+                setGenreForm({ ...genreForm, name: e.target.value })
+              }
               required
               autoFocus
             />
@@ -1361,12 +1505,25 @@ export default function AdminPage() {
               {isSubmittingGenre
                 ? "Saving..."
                 : genreForm.id
-                ? "Update Genre"
-                : "+ Create Genre"}
+                  ? "Update Genre"
+                  : "+ Create Genre"}
             </button>
           </div>
         </form>
       </Modal>
+
+      {/* CONFIRMATION POPUP FOR ALL ADMIN DELETE ACTIONS */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title={deleteTarget?.title || "Confirm Deletion"}
+        message={deleteTarget?.message}
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeletingTarget}
+      />
 
       <Footer />
     </div>

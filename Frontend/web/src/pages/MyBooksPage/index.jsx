@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import styles from "./MyBooksPage.module.css";
 import Footer from "../../components/Footer";
+import ConfirmModal from "../../components/ConfirmModal";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function MyBooksPage() {
@@ -14,6 +15,8 @@ export default function MyBooksPage() {
   const activeShelf = searchParams.get("shelf") || "all";
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("list");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleShelfChange = (key) => {
     const params = new URLSearchParams(searchParams);
@@ -117,15 +120,19 @@ export default function MyBooksPage() {
   };
 
   // Remove book from shelf (DELETE /api/user-library/{id}/)
-  const handleRemove = async (id, title) => {
-    if (!confirm(`Are you sure you want to remove "${title}" from your bookshelf?`)) return;
+  const handleConfirmRemove = async () => {
+    if (!deleteTarget) return;
 
+    setIsDeleting(true);
     try {
-      await api.delete(`/api/user-library/${id}/`);
-      setShelfItems((prev) => prev.filter((item) => item.id !== id));
+      await api.delete(`/api/user-library/${deleteTarget.id}/`);
+      setShelfItems((prev) => prev.filter((item) => item.id !== deleteTarget.id));
       toast.info("Removed book from bookshelf.");
+      setDeleteTarget(null);
     } catch (err) {
       toast.error(getApiErrorMessage(err, "Unable to remove book from bookshelf."));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -335,7 +342,7 @@ export default function MyBooksPage() {
                       </td>
                       <td>
                         <button
-                          onClick={() => handleRemove(item.id, item.title)}
+                          onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
                           className={styles.removeBtn}
                           title="Remove from shelf"
                         >
@@ -383,6 +390,22 @@ export default function MyBooksPage() {
           </section>
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmRemove}
+        title="Remove from Shelf"
+        message={
+          <span>
+            Are you sure you want to remove <strong>&quot;{deleteTarget?.title}&quot;</strong> from your bookshelf?
+          </span>
+        }
+        confirmText="Yes, Remove"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={isDeleting}
+      />
 
       <Footer />
     </div>

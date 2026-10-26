@@ -253,6 +253,27 @@
   border-color: #dcd6cc;
 }
 
+.sourceLinkBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #eef7f2;
+  color: #276749;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid #cbe5d7;
+  transition: all 0.15s ease;
+}
+
+.sourceLinkBadge:hover {
+  background-color: #e0f2e8;
+  color: #1b4b35;
+  border-color: #b5d9c4;
+}
+
 @media (max-width: 850px) {
   .container {
     grid-template-columns: minmax(0, 1fr);
