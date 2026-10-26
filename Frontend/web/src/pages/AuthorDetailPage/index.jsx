@@ -8,11 +8,15 @@ import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function AuthorDetailPage() {
   const { id } = useParams();
+
+  // Dữ liệu chi tiết tác giả và danh sách các tác phẩm (API GET /api/authors/{id}/)
   const [author, setAuthor] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Danh sách ID sách đã lưu vào kệ cá nhân của người dùng
   const [savedBooks, setSavedBooks] = useState([]);
 
-  // Lấy chi tiết tác giả từ API GET /api/authors/{id}/
+  // 1. Nạp chi tiết tác giả và các cuốn sách thuộc về tác giả từ API GET /api/authors/{id}/
   useEffect(() => {
     setIsLoading(true);
     api
@@ -21,14 +25,14 @@ export default function AuthorDetailPage() {
         setAuthor(res.data);
       })
       .catch((err) => {
-        console.error("Failed to load author details:", err);
+        console.error("Lỗi khi tải chi tiết tác giả:", err);
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, [id]);
 
-  // Lấy danh sách kệ sách cá nhân
+  // 2. Nạp danh sách sách trên kệ cá nhân của người dùng nếu đã đăng nhập (GET /api/user-library/)
   useEffect(() => {
     const token =
       localStorage.getItem("access_token") ||
@@ -44,6 +48,7 @@ export default function AuthorDetailPage() {
       .catch(() => {});
   }, []);
 
+  // Xử lý thêm nhanh tác phẩm của tác giả này vào kệ 'Want to Read' (POST /api/user-library/)
   const toggleShelf = async (bookId) => {
     const token =
       localStorage.getItem("access_token") ||

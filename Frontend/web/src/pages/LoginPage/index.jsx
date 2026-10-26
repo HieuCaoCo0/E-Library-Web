@@ -6,13 +6,15 @@ import logo from "../../assets/logo.svg";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function LoginPage() {
+  // Trạng thái form đăng nhập
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Bật/tắt hiển thị mật khẩu
   const navigate = useNavigate();
 
+  // Xử lý gửi biểu mẫu đăng nhập qua API POST /api/auth/login/
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
@@ -24,7 +26,7 @@ export default function LoginPage() {
         password: password,
       });
 
-      // Lưu JWT Token và User Profile
+      // Lưu JWT Token và User Profile vào localStorage để xác thực các request tiếp theo
       if (res.data.access) {
         localStorage.setItem("access_token", res.data.access);
       }

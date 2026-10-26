@@ -44,18 +44,21 @@ export default function BookDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // Dữ liệu chi tiết cuốn sách từ API GET /api/books/{id}/
   const [book, setBook] = useState(null);
   const [isLoadingBook, setIsLoadingBook] = useState(true);
+
+  // Danh sách đánh giá của bạn đọc từ API GET /api/books/{id}/reviews/
   const [reviews, setReviews] = useState([]);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
 
-  // Kệ sách cá nhân (WANT_TO_READ, READING, READ)
+  // Quản lý trạng thái kệ sách cá nhân của người dùng (want_to_read, reading, read)
   const [shelfStatus, setShelfStatus] = useState("want_to_read");
-  const [libraryRecordId, setLibraryRecordId] = useState(null);
+  const [libraryRecordId, setLibraryRecordId] = useState(null); // ID bản ghi kệ sách để xóa nếu cần
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Đóng dropdown khi click ra ngoài
+  // Đóng dropdown chọn trạng thái kệ sách khi bấm chuột ra ngoài menu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -66,22 +69,23 @@ export default function BookDetailPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Form review
-  const [myRating, setMyRating] = useState(5);
-  const [myComment, setMyComment] = useState("");
-  const [editingId, setEditingId] = useState(null);
+  // Trạng thái cho form gửi/sửa bài đánh giá (Review)
+  const [myRating, setMyRating] = useState(5); // Số sao đánh giá (1 - 5)
+  const [myComment, setMyComment] = useState(""); // Nội dung bình luận
+  const [editingId, setEditingId] = useState(null); // ID của review đang chỉnh sửa (nếu có)
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [reviewToDelete, setReviewToDelete] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null); // Thông tin tài khoản người dùng đang đăng nhập
+  const [reviewToDelete, setReviewToDelete] = useState(null); // ID review được chọn để chuẩn bị xác nhận xóa
   const [isDeletingReview, setIsDeletingReview] = useState(false);
 
+  // Nạp thông tin người dùng hiện tại từ localStorage hoặc gọi API GET /api/users/profile/
   useEffect(() => {
     const userStr = localStorage.getItem("user");
     if (userStr) {
       try {
         setCurrentUser(JSON.parse(userStr));
       } catch {
-        // ignore
+        // bỏ qua nếu dữ liệu lưu bị hỏng
       }
     } else {
       const token =
@@ -99,7 +103,7 @@ export default function BookDetailPage() {
     }
   }, []);
 
-  // 1. Lấy chi tiết sách từ API GET /api/books/{id}/
+  // 1. Nạp dữ liệu chi tiết sách từ API GET /api/books/{id}/
   useEffect(() => {
     setIsLoadingBook(true);
     api
@@ -108,14 +112,14 @@ export default function BookDetailPage() {
         setBook(res.data);
       })
       .catch((err) => {
-        console.error("Failed to load book details:", err);
+        console.error("Lỗi khi tải chi tiết sách:", err);
       })
       .finally(() => {
         setIsLoadingBook(false);
       });
   }, [id]);
 
-  // 2. Lấy danh sách reviews từ API GET /api/books/{id}/reviews/
+  // 2. Nạp danh sách các bài đánh giá cho cuốn sách từ API GET /api/books/{id}/reviews/
   const loadReviews = () => {
     setIsLoadingReviews(true);
     api
@@ -124,7 +128,7 @@ export default function BookDetailPage() {
         setReviews(res.data || []);
       })
       .catch((err) => {
-        console.error("Failed to load reviews:", err);
+        console.error("Lỗi khi tải danh sách đánh giá:", err);
         setReviews([]);
       })
       .finally(() => {
@@ -136,14 +140,14 @@ export default function BookDetailPage() {
     loadReviews();
   }, [id]);
 
-  // Tự động nhận diện bài review đã có của currentUser
+  // Tìm bài đánh giá đã tồn tại của người dùng hiện tại đối với cuốn sách này
   const myExistingReview = reviews.find(
     (rev) =>
       currentUser &&
       (rev.user === currentUser.id || rev.username === currentUser.username)
   );
 
-  // Tự động điền review cũ vào form để chuyển sang chế độ cập nhật
+  // Tự động điền dữ liệu review cũ vào form để chuyển sang chế độ cập nhật (Update Review)
   useEffect(() => {
     if (!currentUser || isLoadingReviews) return;
 
@@ -158,7 +162,7 @@ export default function BookDetailPage() {
     }
   }, [currentUser?.id, currentUser?.username, myExistingReview?.id, isLoadingReviews]);
 
-  // 3. Kiểm tra trạng thái kệ sách hiện tại của user cho cuốn sách này
+  // 3. Kiểm tra xem cuốn sách này đã có trong kệ cá nhân của người dùng chưa (GET /api/user-library/)
   useEffect(() => {
     const token =
       localStorage.getItem("access_token") ||
@@ -178,7 +182,7 @@ export default function BookDetailPage() {
       .catch(() => {});
   }, [id]);
 
-  // Xử lý thay đổi trạng thái đọc
+  // Xử lý thay đổi hoặc thêm trạng thái đọc vào kệ sách (POST /api/user-library/)
   const handleShelfChange = async (newStatus) => {
     const token =
       localStorage.getItem("access_token") ||
@@ -202,6 +206,7 @@ export default function BookDetailPage() {
     }
   };
 
+  // Xử lý xóa sách hoàn toàn khỏi kệ sách cá nhân (DELETE /api/user-library/{id}/)
   const handleRemoveFromShelf = async () => {
     if (!libraryRecordId) return;
     try {
@@ -214,6 +219,7 @@ export default function BookDetailPage() {
     }
   };
 
+  // Danh mục các lựa chọn kệ đọc sách
   const SHELF_OPTIONS = [
     { value: "want_to_read", label: "Want to Read" },
     { value: "reading", label: "Currently Reading" },
@@ -223,7 +229,7 @@ export default function BookDetailPage() {
   const currentShelfLabel =
     SHELF_OPTIONS.find((o) => o.value === shelfStatus)?.label || "Want to Read";
 
-  // Tính rating hiển thị
+  // Tính điểm đánh giá trung bình hiển thị (ưu tiên avg_rating -> trung bình reviews -> rating gốc -> 0.0)
   const avgRating =
     book?.avg_rating ||
     (reviews.length > 0
@@ -232,6 +238,7 @@ export default function BookDetailPage() {
         ? Number(book.rating).toFixed(1)
         : "0.0");
 
+  // Xử lý gửi biểu mẫu đánh giá: nếu đã có review thì cập nhật (PUT), nếu chưa thì tạo mới (POST)
   const handleSubmitReview = async (e) => {
     e.preventDefault();
     if (!myComment.trim()) return;
@@ -249,14 +256,14 @@ export default function BookDetailPage() {
 
     try {
       if (editingId) {
-        // Cập nhật review: PUT /api/user-reviews/{id}/
+        // Cập nhật bài đánh giá hiện có: PUT /api/user-reviews/{id}/
         await api.put(`/api/user-reviews/${editingId}/`, {
           rating: myRating,
           comment: myComment.trim(),
         });
         toast.success("Review updated successfully!");
       } else {
-        // Tạo review mới: POST /api/books/{id}/reviews/
+        // Tạo bài đánh giá mới: POST /api/books/{id}/reviews/
         await api.post(`/api/books/${id}/reviews/`, {
           rating: myRating,
           comment: myComment.trim(),
@@ -271,6 +278,7 @@ export default function BookDetailPage() {
     }
   };
 
+  // Điền bài review của người dùng vào form và cuộn mượt xuống vị trí form
   const handleEdit = (rev) => {
     setEditingId(rev.id);
     setMyRating(rev.rating);
@@ -283,6 +291,7 @@ export default function BookDetailPage() {
     }
   };
 
+  // Xác nhận xóa bài đánh giá qua popup ConfirmModal (DELETE /api/user-reviews/{id}/)
   const handleConfirmDeleteReview = async () => {
     if (!reviewToDelete) return;
 

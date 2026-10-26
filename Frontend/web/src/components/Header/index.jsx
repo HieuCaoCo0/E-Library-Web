@@ -95,6 +95,7 @@ export default function Header() {
     setKeyword(searchParams.get("search") || "");
   }, [searchParams]);
 
+  // Xử lý tìm kiếm sách từ thanh Header (chuyển hướng về trang chủ ?search=... và reset trang 1)
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
@@ -107,6 +108,7 @@ export default function Header() {
     navigate(`/?${params.toString()}`);
   };
 
+  // Xử lý đăng xuất: gọi API vô hiệu hóa refresh token, xóa thông tin lưu trữ và điều hướng về trang đăng nhập
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem("refresh_token");
     try {

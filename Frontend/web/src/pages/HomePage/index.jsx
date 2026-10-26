@@ -30,16 +30,16 @@ export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Genres list from API /api/genres/
+  // Danh sách thể loại nạp từ API GET /api/genres/?page_size=500
   const [genres, setGenres] = useState([]);
-  // Books list from API /api/books/
+  // Danh sách sách nạp từ API GET /api/books/
   const [books, setBooks] = useState([]);
-  const [totalBooks, setTotalBooks] = useState(0); // Filtered book count
-  const [overallTotalBooks, setOverallTotalBooks] = useState(300); // Total library book count
+  const [totalBooks, setTotalBooks] = useState(0); // Tổng số sách theo bộ lọc hiện tại
+  const [overallTotalBooks, setOverallTotalBooks] = useState(300); // Tổng số sách toàn thư viện
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
-  // Personalized recommendations from API /api/recommendations/
+  // Danh sách sách gợi ý cá nhân hóa từ API GET /api/recommendations/
   const [recommendedBooks, setRecommendedBooks] = useState([]);
   const [isColdStart, setIsColdStart] = useState(false);
   const [isLoadingRecs, setIsLoadingRecs] = useState(false);
@@ -49,9 +49,9 @@ export default function HomePage() {
       localStorage.getItem("refresh_token")
     );
   });
-  // Saved book IDs from API /api/user-library/
+  // Danh sách ID các cuốn sách user đã lưu vào kệ cá nhân (API GET /api/user-library/)
   const [savedBooks, setSavedBooks] = useState([]);
-  const [libraryRecords, setLibraryRecords] = useState({}); // bookId -> recordId
+  const [libraryRecords, setLibraryRecords] = useState({}); // Bản đồ ánh xạ: bookId -> recordId
 
   const searchKeyword = searchParams.get("search") || "";
   const selectedGenre = searchParams.get("genre") || "all";
@@ -59,7 +59,7 @@ export default function HomePage() {
   const rawPage = parseInt(searchParams.get("page") || "1", 10);
   const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
 
-  // 1. Lấy danh sách thể loại
+  // 1. Nạp toàn bộ 140 thể loại từ Backend để hiển thị ở thanh bên trái
   useEffect(() => {
     api
       .get("/api/genres/?page_size=500")
@@ -68,11 +68,11 @@ export default function HomePage() {
         setGenres(results);
       })
       .catch((err) => {
-        console.error("Failed to load genres:", err);
+        console.error("Lỗi khi tải danh sách thể loại:", err);
       });
   }, []);
 
-  // 2. Lấy danh sách sách của user nếu đã đăng nhập
+  // 2. Nạp danh sách sách trên kệ cá nhân của người dùng (nếu đã đăng nhập)
   const loadUserLibrary = () => {
     const token =
       localStorage.getItem("access_token") ||
@@ -100,7 +100,7 @@ export default function HomePage() {
       });
   };
 
-  // 4. Lấy danh sách gợi ý sách (API GET /api/recommendations/)
+  // 3. Nạp danh sách sách gợi ý cá nhân hóa (API GET /api/recommendations/)
   const loadRecommendations = () => {
     const token =
       localStorage.getItem("access_token") ||
@@ -123,7 +123,7 @@ export default function HomePage() {
         setIsColdStart(Boolean(res.data?.cold_start));
       })
       .catch((err) => {
-        console.error("Failed to load recommendations:", err);
+        console.error("Lỗi khi tải gợi ý sách:", err);
         setRecommendedBooks([]);
       })
       .finally(() => {
@@ -131,6 +131,7 @@ export default function HomePage() {
       });
   };
 
+  // Lắng nghe sự kiện đăng nhập, đăng xuất, và làm mới token để tự động cập nhật dữ liệu
   useEffect(() => {
     loadUserLibrary();
     loadRecommendations();
@@ -155,7 +156,7 @@ export default function HomePage() {
     };
   }, []);
 
-  // 4. Fetch books list by filters (?search= & ?genre= & ?ordering= & page)
+  // 4. Nạp danh sách sách theo bộ lọc: tìm kiếm, thể loại, sắp xếp, và số trang
   useEffect(() => {
     setIsLoadingBooks(true);
     const params = {
@@ -183,7 +184,7 @@ export default function HomePage() {
         }
       })
       .catch((err) => {
-        console.error("Failed to load books:", err);
+        console.error("Lỗi khi tải danh sách sách:", err);
         setBooks([]);
       })
       .finally(() => {
@@ -191,7 +192,7 @@ export default function HomePage() {
       });
   }, [searchKeyword, selectedGenre, page, currentOrdering]);
 
-  // Handle page change (?page=X)
+  // Xử lý chuyển trang (?page=X) và cuộn mượt lên đầu trang
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     if (newPage <= 1) {
@@ -203,7 +204,7 @@ export default function HomePage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Handle genre filter selection (always resets to page 1)
+  // Xử lý lọc theo thể loại (tự động reset về trang 1)
   const handleSelectGenre = (genreId) => {
     const params = new URLSearchParams(searchParams);
     params.delete("page");
@@ -215,7 +216,7 @@ export default function HomePage() {
     setSearchParams(params);
   };
 
-  // Handle ordering / sorting change (always resets to page 1)
+  // Xử lý thay đổi tiêu chí sắp xếp (Điểm cao, Mới nhất, Tên A-Z, v.v., tự động reset về trang 1)
   const handleSortChange = (newOrdering) => {
     const params = new URLSearchParams(searchParams);
     params.delete("page");
@@ -227,7 +228,7 @@ export default function HomePage() {
     setSearchParams(params);
   };
 
-  // Thêm/Xóa sách khỏi kệ cá nhân
+  // Thêm hoặc Xoá sách khỏi kệ 'Want to Read' của người dùng
   const toggleShelf = async (bookId) => {
     const token =
       localStorage.getItem("access_token") ||
@@ -241,7 +242,7 @@ export default function HomePage() {
     const isAdded = savedBooks.includes(bookId);
 
     if (isAdded && libraryRecords[bookId]) {
-      // Remove from shelf
+      // Đã có trong kệ -> Bấm lại để xoá khỏi kệ cá nhân (DELETE /api/user-library/{id}/)
       try {
         await api.delete(`/api/user-library/${libraryRecords[bookId]}/`);
         setSavedBooks((prev) => prev.filter((id) => id !== bookId));
@@ -255,7 +256,7 @@ export default function HomePage() {
         toast.error(getApiErrorMessage(err, "Unable to remove book from shelf."));
       }
     } else {
-      // Add to shelf (WANT_TO_READ)
+      // Chưa có trong kệ -> Thêm vào kệ với trạng thái WANT_TO_READ (POST /api/user-library/)
       try {
         const res = await api.post("/api/user-library/", {
           book: bookId,

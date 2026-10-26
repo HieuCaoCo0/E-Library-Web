@@ -8,14 +8,14 @@ import ConfirmModal from "../../components/ConfirmModal";
 import styles from "./AdminPage.module.css";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
-// Helper to format rating: defaults to "0.0" if missing, null, zero, or error
+// Hàm tiện ích chuẩn hóa điểm đánh giá: mặc định là "0.0" nếu thiếu, null, 0 hoặc bị lỗi
 function formatRating(val) {
   if (val == null || val === "" || isNaN(val)) return "0.0";
   const num = Number(val);
   return num === 0 ? "0.0" : String(num);
 }
 
-// Helper to generate compact pagination items
+// Hàm sinh danh sách các nút phân trang thu gọn kèm dấu ba chấm (1 ... 4 5 6 ... 15)
 function getPaginationItems(current, total) {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -39,12 +39,13 @@ function getPaginationItems(current, total) {
 export default function AdminPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read tab, page, and search directly from URL query parameters
+  // Đọc thông số tab, trang, và từ khóa tìm kiếm trực tiếp từ URL query parameters
   const activeTab = searchParams.get("tab") || "books"; // 'books' | 'authors' | 'genres'
   const rawPage = parseInt(searchParams.get("page") || "1", 10);
   const currentPage = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
   const activeSearch = searchParams.get("search") || "";
 
+  // Thông tin tài khoản người dùng hiện tại
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const userStr = localStorage.getItem("user");
@@ -60,19 +61,19 @@ export default function AdminPage() {
     return Boolean(token);
   });
 
-  // Modal open/close state for the 3 management tabs
+  // Trạng thái bật/tắt Modal tạo/chỉnh sửa cho 3 tab quản lý
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
   const [isGenreModalOpen, setIsGenreModalOpen] = useState(false);
 
-  // Local search input state before submitting
+  // Giá trị nhập tìm kiếm tạm thời trước khi người dùng bấm Enter/Submit
   const [searchInput, setSearchInput] = useState(activeSearch);
 
   useEffect(() => {
     setSearchInput(activeSearch);
   }, [activeSearch, activeTab]);
 
-  // Switch Tab (updates ?tab=... on URL, resets page and search)
+  // Chuyển tab quản lý (cập nhật ?tab=... trên URL, reset trang và từ khóa tìm kiếm)
   const handleTabChange = (newTab) => {
     const params = new URLSearchParams();
     if (newTab !== "books") {
@@ -81,7 +82,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // Change Page (updates ?page=... on URL)
+  // Chuyển trang phân trang (cập nhật ?page=... trên URL và cuộn lên đầu)
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     if (newPage <= 1) {
@@ -93,7 +94,7 @@ export default function AdminPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Submit Search (updates ?search=... on URL, resets to page 1)
+  // Xử lý gửi tìm kiếm (cập nhật ?search=... trên URL, tự động quay về trang 1)
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
@@ -106,7 +107,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // Clear search filter
+  // Xóa bộ lọc tìm kiếm
   const handleClearSearch = () => {
     setSearchInput("");
     const params = new URLSearchParams(searchParams);
@@ -115,7 +116,7 @@ export default function AdminPage() {
     setSearchParams(params);
   };
 
-  // 1. Check current account & Admin permissions
+  // 1. Xác thực tài khoản hiện tại và kiểm tra quyền Quản trị viên (Admin)
   useEffect(() => {
     const token =
       localStorage.getItem("access_token") ||
@@ -133,13 +134,14 @@ export default function AdminPage() {
         localStorage.setItem("user", JSON.stringify(res.data));
       })
       .catch(() => {
-        // Invalid token
+        // Token không hợp lệ hoặc hết hạn
       })
       .finally(() => {
         setIsCheckingAuth(false);
       });
   }, []);
 
+  // Xác định người dùng có quyền quản trị hay không
   const isAdmin = Boolean(
     currentUser?.is_staff ||
     currentUser?.is_superuser ||
@@ -147,22 +149,22 @@ export default function AdminPage() {
   );
 
   // -------------------------------------------------------------
-  // OVERVIEW DATA: AUTHORS & GENRES (Used for dropdowns and tabs)
+  // DỮ LIỆU TỔNG QUAN: TÁC GIẢ & THỂ LOẠI (Dùng cho dropdown và thống kê)
   // -------------------------------------------------------------
   const [allAuthors, setAllAuthors] = useState([]);
   const [allGenresList, setAllGenresList] = useState([]);
 
-  // Fetch all authors (API /api/authors/)
+  // Nạp toàn bộ danh sách tác giả (API GET /api/authors/)
   const fetchAllAuthors = async () => {
     try {
       const res = await api.get("/api/authors/");
       setAllAuthors(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("Failed to load authors:", err);
+      console.error("Lỗi khi tải danh sách tác giả:", err);
     }
   };
 
-  // Fetch genres list for book genre picker
+  // Nạp toàn bộ thể loại sách để người dùng chọn trong form tạo/sửa sách
   const fetchAllGenresForPicker = async () => {
     try {
       const res = await api.get("/api/genres/?page_size=500");
@@ -170,7 +172,7 @@ export default function AdminPage() {
       setAllGenresList(list);
       setGenreTotalCount(res.data?.count || list.length);
     } catch (err) {
-      console.error("Failed to load genres:", err);
+      console.error("Lỗi khi tải danh sách thể loại:", err);
     }
   };
 
@@ -182,7 +184,7 @@ export default function AdminPage() {
   }, [isAdmin]);
 
   // -------------------------------------------------------------
-  // 1. BOOKS MANAGEMENT (POST/PUT/DELETE /api/books/)
+  // 1. CHỨC NĂNG QUẢN LÝ SÁCH (API GET/POST/PATCH/DELETE /api/books/)
   // -------------------------------------------------------------
   const [books, setBooks] = useState([]);
   const [bookTotalCount, setBookTotalCount] = useState(0);
@@ -192,6 +194,7 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeletingTarget, setIsDeletingTarget] = useState(false);
 
+  // Cấu trúc form dữ liệu sách
   const initialBookForm = {
     id: null,
     title: "",
@@ -206,6 +209,7 @@ export default function AdminPage() {
   };
   const [bookForm, setBookForm] = useState(initialBookForm);
 
+  // Nạp danh sách sách theo trang và từ khóa tìm kiếm (GET /api/books/)
   const fetchBooks = async (page = 1, search = "") => {
     setIsLoadingBooks(true);
     try {
@@ -231,7 +235,7 @@ export default function AdminPage() {
     }
   }, [isAdmin, activeTab, currentPage, activeSearch]);
 
-  // Toggle genre selection for book
+  // Chọn hoặc bỏ chọn thể loại cho cuốn sách trong form
   const handleToggleGenre = (genreId) => {
     const current = bookForm.genres || [];
     if (current.includes(genreId)) {
@@ -247,7 +251,7 @@ export default function AdminPage() {
     }
   };
 
-  // Start editing book (open modal)
+  // Mở modal chỉnh sửa sách và điền thông tin hiện tại vào form
   const handleStartEditBook = (book) => {
     setBookForm({
       id: book.id,
@@ -264,7 +268,7 @@ export default function AdminPage() {
     setIsBookModalOpen(true);
   };
 
-  // Save book (POST or PATCH)
+  // Lưu thông tin sách: Cập nhật (PATCH) hoặc Tạo mới (POST)
   const handleSaveBook = async (e) => {
     e.preventDefault();
 
@@ -308,7 +312,7 @@ export default function AdminPage() {
     }
   };
 
-  // Delete book (Trigger confirm modal)
+  // Kích hoạt ConfirmModal để xác nhận xóa sách
   const handleDeleteBook = (book) => {
     setDeleteTarget({
       type: "book",
@@ -323,7 +327,7 @@ export default function AdminPage() {
   };
 
   // -------------------------------------------------------------
-  // 2. AUTHORS MANAGEMENT (POST/PUT/DELETE /api/authors/)
+  // 2. CHỨC NĂNG QUẢN LÝ TÁC GIẢ (API GET/POST/PUT/DELETE /api/authors/)
   // -------------------------------------------------------------
   const authorsPerPage = 12;
   const [isSubmittingAuthor, setIsSubmittingAuthor] = useState(false);
@@ -331,7 +335,7 @@ export default function AdminPage() {
   const initialAuthorForm = { id: null, name: "" };
   const [authorForm, setAuthorForm] = useState(initialAuthorForm);
 
-  // Filter authors by search keyword
+  // Lọc tác giả theo từ khóa tìm kiếm
   const filteredAuthors = allAuthors.filter((a) =>
     activeSearch
       ? a.name.toLowerCase().includes(activeSearch.toLowerCase())
@@ -347,13 +351,13 @@ export default function AdminPage() {
     currentPage * authorsPerPage,
   );
 
-  // Start editing author (open modal)
+  // Mở modal chỉnh sửa tác giả
   const handleStartEditAuthor = (author) => {
     setAuthorForm({ id: author.id, name: author.name });
     setIsAuthorModalOpen(true);
   };
 
-  // Save Author (POST /api/authors/ or PUT /api/authors/<id>/)
+  // Lưu thông tin tác giả: Cập nhật (PUT) hoặc Tạo mới (POST)
   const handleSaveAuthor = async (e) => {
     e.preventDefault();
     if (!authorForm.name.trim()) return;
@@ -379,7 +383,7 @@ export default function AdminPage() {
     }
   };
 
-  // Delete Author (Trigger confirm modal)
+  // Kích hoạt ConfirmModal để xác nhận xóa tác giả
   const handleDeleteAuthor = (author) => {
     setDeleteTarget({
       type: "author",
@@ -394,7 +398,7 @@ export default function AdminPage() {
   };
 
   // -------------------------------------------------------------
-  // 3. GENRES MANAGEMENT (POST/PUT/DELETE /api/genres/)
+  // 3. CHỨC NĂNG QUẢN LÝ THỂ LOẠI (API GET/POST/PUT/DELETE /api/genres/)
   // -------------------------------------------------------------
   const [genres, setGenres] = useState([]);
   const [genreTotalCount, setGenreTotalCount] = useState(0);
@@ -405,6 +409,7 @@ export default function AdminPage() {
   const initialGenreForm = { id: null, name: "" };
   const [genreForm, setGenreForm] = useState(initialGenreForm);
 
+  // Nạp danh sách thể loại theo trang và tìm kiếm (GET /api/genres/)
   const fetchGenres = async (page = 1, search = "") => {
     setIsLoadingGenres(true);
     try {
@@ -432,13 +437,13 @@ export default function AdminPage() {
     }
   }, [isAdmin, activeTab, currentPage, activeSearch]);
 
-  // Start editing genre (open modal)
+  // Mở modal chỉnh sửa thể loại
   const handleStartEditGenre = (genre) => {
     setGenreForm({ id: genre.id, name: genre.name });
     setIsGenreModalOpen(true);
   };
 
-  // Save Genre (POST /api/genres/ or PUT /api/genres/<id>/)
+  // Lưu thông tin thể loại: Cập nhật (PUT) hoặc Tạo mới (POST)
   const handleSaveGenre = async (e) => {
     e.preventDefault();
     if (!genreForm.name.trim()) return;
@@ -465,7 +470,7 @@ export default function AdminPage() {
     }
   };
 
-  // Delete Genre (Trigger confirm modal)
+  // Kích hoạt ConfirmModal để xác nhận xóa thể loại
   const handleDeleteGenre = (genre) => {
     setDeleteTarget({
       type: "genre",
@@ -479,7 +484,7 @@ export default function AdminPage() {
     });
   };
 
-  // Centralized confirmation handler for all Admin deletions
+  // Hàm xử lý xác nhận xóa tập trung cho toàn bộ các đối tượng trong Admin (Sách, Tác giả, Thể loại)
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
 

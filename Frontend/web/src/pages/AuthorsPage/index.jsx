@@ -5,8 +5,10 @@ import styles from "./AuthorsPage.module.css";
 import Footer from "../../components/Footer";
 import api from "../../plugins/axios";
 
+// Số tác giả hiển thị trên mỗi trang danh mục
 const ITEMS_PER_PAGE = 8;
 
+// Thuật toán tạo danh sách nút phân trang thông minh kèm dấu ba chấm (1 ... 4 5 6 ... 28)
 const getPaginationItems = (current, total) => {
   if (total <= 7) {
     return Array.from({ length: total }, (_, i) => i + 1);
@@ -33,10 +35,11 @@ export default function AuthorsPage() {
   const currentPage = !isNaN(rawPage) && rawPage > 0 ? rawPage : 1;
   const searchTerm = searchParams.get("search") || "";
 
+  // Danh sách tác giả từ API GET /api/authors/?search=
   const [authors, setAuthors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Lấy danh sách tác giả từ API GET /api/authors/?search=
+  // 1. Nạp danh sách toàn bộ tác giả hoặc lọc theo từ khóa tìm kiếm
   useEffect(() => {
     setIsLoading(true);
     const params = {};
@@ -51,7 +54,7 @@ export default function AuthorsPage() {
         setAuthors(list);
       })
       .catch((err) => {
-        console.error("Failed to load authors:", err);
+        console.error("Lỗi khi tải danh sách tác giả:", err);
         setAuthors([]);
       })
       .finally(() => {
@@ -59,10 +62,12 @@ export default function AuthorsPage() {
       });
   }, [searchTerm]);
 
+  // Tính toán phân trang trên Frontend cho danh mục tác giả
   const totalPages = Math.ceil(authors.length / ITEMS_PER_PAGE) || 1;
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedAuthors = authors.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+  // Xử lý khi người dùng nhập từ khóa tìm kiếm (tự động cập nhật URL và reset về trang 1)
   const handleSearchChange = (e) => {
     const val = e.target.value;
     const params = new URLSearchParams(searchParams);
@@ -75,6 +80,7 @@ export default function AuthorsPage() {
     setSearchParams(params);
   };
 
+  // Xử lý chuyển đổi trang và cuộn mượt lên đầu trang
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
     if (newPage <= 1) {

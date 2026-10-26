@@ -10,14 +10,25 @@ import api, { getApiErrorMessage } from "../../plugins/axios";
 export default function MyBooksPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Danh sách các cuốn sách trong tủ sách cá nhân kèm thông tin chi tiết
   const [shelfItems, setShelfItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Bộ lọc kệ hiện tại (all | read | reading | want_to_read)
   const activeShelf = searchParams.get("shelf") || "all";
+
+  // Từ khóa tìm kiếm cục bộ trong kệ sách của người dùng
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Chế độ hiển thị: dạng bảng ("list") hoặc dạng lưới thẻ ("grid")
   const [viewMode, setViewMode] = useState("list");
+
+  // Đối tượng sách được chọn để mở ConfirmModal xác nhận xóa
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Xử lý chuyển tab trạng thái kệ sách (cập nhật query URL ?shelf=...)
   const handleShelfChange = (key) => {
     const params = new URLSearchParams(searchParams);
     if (key === "all") {
@@ -28,6 +39,7 @@ export default function MyBooksPage() {
     setSearchParams(params);
   };
 
+  // Nạp toàn bộ danh sách sách trong kệ người dùng (GET /api/user-library/) kèm thông tin chi tiết sách
   const loadUserLibrary = async () => {
     const token =
       localStorage.getItem("access_token") ||
@@ -42,7 +54,7 @@ export default function MyBooksPage() {
       const res = await api.get("/api/user-library/");
       const records = res.data || [];
 
-      // Fetch book details for each record
+      // Với mỗi bản ghi kệ sách, nạp thêm chi tiết cuốn sách từ GET /api/books/{book_id}/
       const bookPromises = records.map(async (rec) => {
         try {
           const bookRes = await api.get(`/api/books/${rec.book}/`);
@@ -74,12 +86,13 @@ export default function MyBooksPage() {
       const loadedItems = await Promise.all(bookPromises);
       setShelfItems(loadedItems);
     } catch (err) {
-      console.error("Failed to load bookshelves:", err);
+      console.error("Lỗi khi tải tủ sách cá nhân:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Nạp dữ liệu lần đầu và lắng nghe sự kiện làm mới token để đồng bộ lại
   useEffect(() => {
     loadUserLibrary();
     window.addEventListener("auth_token_refreshed", loadUserLibrary);
@@ -88,11 +101,13 @@ export default function MyBooksPage() {
     };
   }, []);
 
+  // Tính số lượng sách tương ứng theo từng trạng thái đọc
   const countByStatus = (status) =>
     status === "all"
       ? shelfItems.length
       : shelfItems.filter((item) => item.status === status).length;
 
+  // Lọc sách theo kệ đang chọn và theo chuỗi tìm kiếm tiêu đề/tác giả
   const filteredItems = shelfItems.filter((item) => {
     const matchShelf = activeShelf === "all" || item.status === activeShelf;
     const matchQuery =
@@ -102,7 +117,7 @@ export default function MyBooksPage() {
     return matchShelf && matchQuery;
   });
 
-  // Update shelf status (PATCH /api/user-library/{id}/)
+  // Cập nhật trạng thái đọc của cuốn sách (PATCH /api/user-library/{id}/)
   const handleStatusChange = async (id, newStatus) => {
     try {
       await api.patch(`/api/user-library/${id}/`, {
@@ -119,7 +134,7 @@ export default function MyBooksPage() {
     }
   };
 
-  // Remove book from shelf (DELETE /api/user-library/{id}/)
+  // Xác nhận xóa sách khỏi kệ người dùng qua ConfirmModal (DELETE /api/user-library/{id}/)
   const handleConfirmRemove = async () => {
     if (!deleteTarget) return;
 

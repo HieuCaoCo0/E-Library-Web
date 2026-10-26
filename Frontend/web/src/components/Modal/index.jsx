@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import styles from "./Modal.module.css";
 
+/**
+ * Component Modal Dùng Chung (Generic Modal Dialog)
+ * Hiển thị form tạo mới hoặc chỉnh sửa dữ liệu với lớp phủ nền mờ và nút đóng.
+ */
 export default function Modal({
   isOpen,
   onClose,

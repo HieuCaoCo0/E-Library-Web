@@ -6,6 +6,7 @@ import logo from "../../assets/logo.svg";
 import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function RegisterPage() {
+  // Trạng thái dữ liệu biểu mẫu đăng ký
   const [formData, setFormData] = useState({
     username: "",
     name: "",
@@ -16,19 +17,22 @@ export default function RegisterPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Bật/tắt xem mật khẩu
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // Bật/tắt xem mật khẩu xác nhận
   const navigate = useNavigate();
 
+  // Xử lý cập nhật giá trị các trường input vào state chung
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Xử lý gửi đăng ký tài khoản mới qua API POST /api/auth/register/
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
+    // Kiểm tra hai lần nhập mật khẩu phải khớp nhau
     if (formData.password !== formData.confirmPassword) {
       setErrorMsg("Passwords do not match!");
       return;
@@ -36,7 +40,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
-    // Split name into first_name and last_name
+    // Tách họ và tên từ trường nhập Họ tên đầy đủ (name -> first_name & last_name)
     const nameParts = formData.name.trim().split(" ");
     const firstName = nameParts.slice(0, -1).join(" ") || nameParts[0] || "";
     const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
@@ -53,6 +57,7 @@ export default function RegisterPage() {
 
       setSuccessMsg("Account registered successfully! Redirecting to sign in...");
       toast.success("Account registered successfully!");
+      // Tự động chuyển hướng về trang đăng nhập sau 1.5 giây
       setTimeout(() => {
         navigate("/login");
       }, 1500);

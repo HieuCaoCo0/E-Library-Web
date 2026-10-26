@@ -2,18 +2,18 @@ import { useEffect } from "react";
 import styles from "./ConfirmModal.module.css";
 
 /**
- * Reusable Confirmation Modal component
- * Replaces native browser window.confirm() dialogs with a clean, branded Goodreads-style modal.
+ * Component Popup Xác Nhận Dùng Chung (ConfirmModal)
+ * Thay thế hoàn toàn dialog window.confirm() mặc định của trình duyệt với giao diện đồng bộ E-Library.
  *
- * @param {boolean} isOpen - Controls modal visibility
- * @param {function} onClose - Called when user cancels or clicks outside
- * @param {function} onConfirm - Called when user clicks confirm button
- * @param {string} title - Modal heading (e.g. "Remove from Shelf", "Delete Book")
- * @param {string|React.ReactNode} message - Descriptive text or element
- * @param {string} confirmText - Label on confirm button (default: "Yes, Confirm")
- * @param {string} cancelText - Label on cancel button (default: "Cancel")
- * @param {"danger" | "warning"} type - Modal theme styling (default: "danger")
- * @param {boolean} isLoading - Disables actions and displays loading state
+ * @param {boolean} isOpen - Trạng thái hiển thị modal
+ * @param {function} onClose - Hàm gọi khi đóng modal hoặc bấm Hủy
+ * @param {function} onConfirm - Hàm gọi khi người dùng bấm nút Xác nhận
+ * @param {string} title - Tiêu đề hộp thoại xác nhận
+ * @param {string|React.ReactNode} message - Nội dung câu hỏi/cảnh báo xác nhận
+ * @param {string} confirmText - Nhãn nút xác nhận (Mặc định: "Yes, Confirm")
+ * @param {string} cancelText - Nhãn nút hủy bỏ (Mặc định: "Cancel")
+ * @param {"danger" | "warning"} type - Giao diện nguy hiểm (đỏ) hoặc cảnh báo (cam)
+ * @param {boolean} isLoading - Trạng thái đang xử lý API (vô hiệu hóa các nút)
  */
 export default function ConfirmModal({
   isOpen,
@@ -26,6 +26,7 @@ export default function ConfirmModal({
   type = "danger",
   isLoading = false,
 }) {
+  // Lắng nghe phím Escape để đóng popup và khóa cuộn trang (body scroll lock) khi mở modal
   useEffect(() => {
     if (!isOpen) return;
 

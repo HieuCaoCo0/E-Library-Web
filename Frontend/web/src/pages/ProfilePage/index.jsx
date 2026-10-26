@@ -8,8 +8,12 @@ import api, { getApiErrorMessage } from "../../plugins/axios";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
+
+  // Dữ liệu hồ sơ người dùng từ API GET /api/users/profile/
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Trạng thái bật/tắt chế độ biểu mẫu chỉnh sửa thông tin
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -17,9 +21,12 @@ export default function ProfilePage() {
     email: "",
     bio: "",
   });
+
+  // Thông báo phản hồi sau khi lưu thông tin
   const [saveMessage, setSaveMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  // 1. Nạp dữ liệu hồ sơ cá nhân của người dùng hiện tại (GET /api/users/profile/)
   const loadProfile = () => {
     const token =
       localStorage.getItem("access_token") ||
@@ -42,13 +49,14 @@ export default function ProfilePage() {
         });
       })
       .catch((err) => {
-        console.error("Failed to load profile:", err);
+        console.error("Lỗi khi tải thông tin hồ sơ:", err);
       })
       .finally(() => {
         setIsLoading(false);
       });
   };
 
+  // Nạp hồ sơ khi render và đăng ký lắng nghe sự kiện token refresh
   useEffect(() => {
     loadProfile();
     window.addEventListener("auth_token_refreshed", loadProfile);
@@ -57,7 +65,7 @@ export default function ProfilePage() {
     };
   }, []);
 
-  // Handle avatar upload (multipart/form-data)
+  // 2. Xử lý tải ảnh đại diện avatar (gửi file multipart/form-data qua PATCH /api/users/profile/)
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -81,7 +89,7 @@ export default function ProfilePage() {
     }
   };
 
-  // Handle saving profile info (PATCH /api/users/profile/)
+  // 3. Xử lý lưu thông tin hồ sơ cá nhân: họ tên, email, bio (PATCH /api/users/profile/)
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSaveMessage("");
