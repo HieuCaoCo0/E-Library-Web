@@ -34,12 +34,21 @@ export default function HomePage() {
   const [genres, setGenres] = useState([]);
   // Danh sách sách từ API /api/books/
   const [books, setBooks] = useState([]);
-  const [totalBooks, setTotalBooks] = useState(0);
+  const [totalBooks, setTotalBooks] = useState(0); // Số sách theo bộ lọc hiện tại
+  const [overallTotalBooks, setOverallTotalBooks] = useState(300); // Tổng số sách toàn thư viện (cố định)
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingBooks, setIsLoadingBooks] = useState(true);
 
-  // Tác giả nổi bật từ API /api/authors/
-  const [featuredAuthors, setFeaturedAuthors] = useState([]);
+  // Gợi ý sách cá nhân hóa từ API /api/recommendations/
+  const [recommendedBooks, setRecommendedBooks] = useState([]);
+  const [isColdStart, setIsColdStart] = useState(false);
+  const [isLoadingRecs, setIsLoadingRecs] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return Boolean(
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token")
+    );
+  });
   // Danh sách ID sách trong kệ cá nhân từ API /api/user-library/
   const [savedBooks, setSavedBooks] = useState([]);
   const [libraryRecords, setLibraryRecords] = useState({}); // bookId -> recordId
@@ -52,7 +61,7 @@ export default function HomePage() {
   // 1. Lấy danh sách thể loại
   useEffect(() => {
     api
-      .get("/api/genres/")
+      .get("/api/genres/?page_size=500")
       .then((res) => {
         const results = res.data?.results || res.data || [];
         setGenres(results);
@@ -62,22 +71,7 @@ export default function HomePage() {
       });
   }, []);
 
-  // 2. Lấy danh sách tác giả nổi bật
-  useEffect(() => {
-    api
-      .get("/api/authors/")
-      .then((res) => {
-        const results = Array.isArray(res.data)
-          ? res.data.slice(0, 5)
-          : res.data?.results?.slice(0, 5) || [];
-        setFeaturedAuthors(results);
-      })
-      .catch((err) => {
-        console.error("Lỗi khi tải tác giả:", err);
-      });
-  }, []);
-
-  // 3. Lấy danh sách sách của user nếu đã đăng nhập
+  // 2. Lấy danh sách sách của user nếu đã đăng nhập
   const loadUserLibrary = () => {
     const token =
       localStorage.getItem("access_token") ||
@@ -105,15 +99,58 @@ export default function HomePage() {
       });
   };
 
+  // 4. Lấy danh sách gợi ý sách (API GET /api/recommendations/)
+  const loadRecommendations = () => {
+    const token =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("refresh_token");
+
+    if (!token) {
+      setIsLoggedIn(false);
+      setRecommendedBooks([]);
+      setIsLoadingRecs(false);
+      return;
+    }
+
+    setIsLoggedIn(true);
+    setIsLoadingRecs(true);
+
+    api
+      .get("/api/recommendations/")
+      .then((res) => {
+        setRecommendedBooks(res.data?.results || []);
+        setIsColdStart(Boolean(res.data?.cold_start));
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải gợi ý sách:", err);
+        setRecommendedBooks([]);
+      })
+      .finally(() => {
+        setIsLoadingRecs(false);
+      });
+  };
+
   useEffect(() => {
     loadUserLibrary();
-    window.addEventListener("auth_token_refreshed", loadUserLibrary);
-    window.addEventListener("auth_logout", () => {
+    loadRecommendations();
+
+    const handleAuthRefreshed = () => {
+      loadUserLibrary();
+      loadRecommendations();
+    };
+
+    const handleAuthLogout = () => {
+      setIsLoggedIn(false);
       setSavedBooks([]);
       setLibraryRecords({});
-    });
+      loadRecommendations();
+    };
+
+    window.addEventListener("auth_token_refreshed", handleAuthRefreshed);
+    window.addEventListener("auth_logout", handleAuthLogout);
     return () => {
-      window.removeEventListener("auth_token_refreshed", loadUserLibrary);
+      window.removeEventListener("auth_token_refreshed", handleAuthRefreshed);
+      window.removeEventListener("auth_logout", handleAuthLogout);
     };
   }, []);
 
@@ -134,8 +171,12 @@ export default function HomePage() {
       .get("/api/books/", { params })
       .then((res) => {
         setBooks(res.data.results || []);
-        setTotalBooks(res.data.count || 0);
+        const count = res.data.count || 0;
+        setTotalBooks(count);
         setTotalPages(res.data.total_pages || 1);
+        if (!searchKeyword && (!selectedGenre || selectedGenre === "all")) {
+          setOverallTotalBooks(count);
+        }
       })
       .catch((err) => {
         console.error("Lỗi khi tải sách:", err);
@@ -228,7 +269,7 @@ export default function HomePage() {
               Meet your next favorite book.
             </h1>
             <p className={styles.bannerDesc}>
-              Khám phá kho sách với hơn {totalBooks || 300} đầu sách chọn lọc, lưu vào tủ sách cá nhân và chia sẻ đánh giá cùng cộng đồng E-Library.
+              Khám phá kho sách với hơn {overallTotalBooks || 300} đầu sách chọn lọc, lưu vào tủ sách cá nhân và chia sẻ đánh giá cùng cộng đồng E-Library.
             </p>
           </div>
         </div>
@@ -240,7 +281,7 @@ export default function HomePage() {
         <aside>
           <h2 className={styles.sectionTitle}>Browse Genres</h2>
           <ul className={styles.genreList}>
-            <li className={styles.genreItem}>
+            <li className={`${styles.genreItem} ${styles.allGenresItem}`}>
               <button
                 onClick={() => handleSelectGenre("all")}
                 className={`${styles.genreBtn} ${
@@ -248,10 +289,10 @@ export default function HomePage() {
                 }`}
               >
                 <span>All Genres</span>
-                <span>({totalBooks})</span>
+                <span>({overallTotalBooks || 300})</span>
               </button>
             </li>
-            {genres.slice(0, 15).map((genre) => (
+            {genres.map((genre) => (
               <li key={genre.id} className={styles.genreItem}>
                 <button
                   onClick={() => handleSelectGenre(String(genre.id))}
@@ -452,27 +493,88 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* CỘT PHẢI: Tác giả nổi bật (API GET /api/authors/) */}
+        {/* CỘT PHẢI: Gợi ý sách (Recommendation - Giữ đủ 10 cuốn từ API) */}
         <aside>
-          <h2 className={styles.sectionTitle}>Featured Authors</h2>
-          <div className={styles.authorList}>
-            {featuredAuthors.map((author) => (
-              <Link
-                key={author.id}
-                to={`/authors/${author.id}`}
-                className={styles.authorCard}
-              >
-                <div className={styles.authorAvatar}>
-                  {author.name ? author.name.charAt(0) : "A"}
-                </div>
-                <div>
-                  <div className={styles.authorName}>{author.name}</div>
-                  <div className={styles.authorMeta}>
-                    View published books →
-                  </div>
-                </div>
-              </Link>
-            ))}
+          <div className={styles.recContainer}>
+            <div className={styles.recHeader}>
+              <h2 className={styles.recTitle}>
+                {isColdStart ? (
+                  <span>★ Top Rated Books</span>
+                ) : (
+                  <span>✨ Recommended For You</span>
+                )}
+              </h2>
+            </div>
+
+            {isLoadingRecs ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "#888", fontSize: "13px" }}>
+                Đang tìm sách phù hợp...
+              </div>
+            ) : recommendedBooks.length === 0 ? (
+              <div style={{ padding: "16px 0", color: "#666", fontSize: "13px" }}>
+                Chưa có gợi ý sách. Hãy thêm sách vào tủ để nhận gợi ý!
+              </div>
+            ) : (
+              <div className={styles.recList}>
+                {recommendedBooks.slice(0, 10).map((book) => {
+                  const isSaved = savedBooks.includes(book.id);
+                  const matchPercent = book.preference_score
+                    ? Math.round(book.preference_score * 100)
+                    : null;
+
+                  return (
+                    <div key={book.id} className={styles.recCard}>
+                      <Link to={`/books/${book.id}`} className={styles.recCoverLink}>
+                        <img
+                          src={
+                            book.cover_image ||
+                            "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=200&q=80"
+                          }
+                          alt={book.title}
+                          className={styles.recCover}
+                        />
+                      </Link>
+
+                      <div className={styles.recInfo}>
+                        <Link to={`/books/${book.id}`} className={styles.recBookTitle} title={book.title}>
+                          {book.title}
+                        </Link>
+
+                        <div className={styles.recAuthor}>
+                          by{" "}
+                          {book.author_id ? (
+                            <Link to={`/authors/${book.author_id}`} style={{ color: "inherit", textDecoration: "none" }}>
+                              {book.author}
+                            </Link>
+                          ) : (
+                            book.author
+                          )}
+                        </div>
+
+                        <div className={styles.recMetaRow}>
+                          <span className={styles.recRating}>
+                            ★ {book.avg_rating || (book.rating ? Number(book.rating).toFixed(1) : "0.0")}
+                          </span>
+                          {!isColdStart && matchPercent !== null && matchPercent > 0 && (
+                            <span className={styles.recScoreMatch} title="Mức độ tương đồng với gu đọc của bạn">
+                              {matchPercent}% Match
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleShelf(book.id)}
+                          className={`${styles.recBtnShelf} ${isSaved ? styles.recBtnShelfSaved : ""}`}
+                        >
+                          {isSaved ? "✓ On Shelf" : "+ Want to Read"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className={styles.challengeBox}>

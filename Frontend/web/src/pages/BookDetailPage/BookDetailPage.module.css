@@ -210,15 +210,56 @@
   color: #706b63;
 }
 
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
 .genreTag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   background-color: #f4f1ea;
   color: #382110;
   padding: 6px 16px;
   border-radius: 16px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
-  margin-bottom: 22px;
+}
+
+.metaInfoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #faf8f5;
+  color: #5a544c;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  border: 1px solid #e7e2d6;
+}
+
+.sourceLinkBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #eef7f2;
+  color: #276749;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid #cbe5d7;
+  transition: all 0.15s ease;
+}
+
+.sourceLinkBadge:hover {
+  background-color: #e0f2e8;
+  color: #1b4b35;
+  border-color: #b5d9c4;
 }
 
 .description {
@@ -310,21 +351,70 @@
 }
 
 .reviewCard {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
   padding-bottom: 20px;
   border-bottom: 1px solid #ece9e2;
+}
+
+.reviewerAvatarCol {
+  flex-shrink: 0;
+}
+
+.reviewerAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #e0dbd1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: block;
+}
+
+.reviewerAvatarFallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #ede8df;
+  color: #382110;
+  font-weight: 700;
+  font-size: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dfd9ce;
+}
+
+.reviewBody {
+  flex: 1;
+  min-width: 0;
 }
 
 .reviewHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.reviewerInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .reviewerName {
   font-weight: 700;
   font-size: 16px;
   color: #382110;
+}
+
+.reviewStars {
+  color: #e87400;
+  font-size: 15px;
+  letter-spacing: 1px;
 }
 
 .reviewDate {

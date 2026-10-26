@@ -64,10 +64,44 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  max-height: 620px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #d4cfc4 #f4f1ea;
+}
+
+.genreList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.genreList::-webkit-scrollbar-track {
+  background: #f4f1ea;
+  border-radius: 4px;
+}
+
+.genreList::-webkit-scrollbar-thumb {
+  background: #d4cfc4;
+  border-radius: 4px;
+}
+
+.genreList::-webkit-scrollbar-thumb:hover {
+  background: #b0aaa0;
 }
 
 .genreItem {
   margin-bottom: 4px;
+}
+
+.allGenresItem {
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 2;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #f0ece1;
 }
 
 .genreBtn {
@@ -239,7 +273,197 @@
   color: #706b63;
 }
 
-/* Cột phải: Tác giả nổi bật & Thử thách đọc sách */
+/* Cột phải: Gợi ý sách (Recommendation) & Tác giả nổi bật */
+.recContainer {
+  margin-bottom: 24px;
+}
+
+.recHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e6e2d8;
+}
+
+.recTitle {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #382110;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.recBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.recBadgeCold {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.recList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 620px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #d4cfc4 #f4f1ea;
+}
+
+.recList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recList::-webkit-scrollbar-track {
+  background: #f4f1ea;
+  border-radius: 4px;
+}
+
+.recList::-webkit-scrollbar-thumb {
+  background: #d4cfc4;
+  border-radius: 4px;
+}
+
+.recList::-webkit-scrollbar-thumb:hover {
+  background: #b0aaa0;
+}
+
+.recCard {
+  display: flex;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0ece1;
+}
+
+.recCard:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.recCoverLink {
+  flex-shrink: 0;
+  display: block;
+}
+
+.recCover {
+  width: 52px;
+  height: 76px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease;
+}
+
+.recCover:hover {
+  transform: scale(1.04);
+}
+
+.recInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recBookTitle {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e1915;
+  text-decoration: none;
+  line-height: 1.3;
+  margin-bottom: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recBookTitle:hover {
+  color: #00635d;
+  text-decoration: underline;
+}
+
+.recAuthor {
+  font-size: 12px;
+  color: #706b63;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.recRating {
+  font-size: 12px;
+  color: #e87400;
+  font-weight: 600;
+}
+
+.recScoreMatch {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: #f1f8e9;
+  color: #33691e;
+  border: 1px solid #dcedc8;
+}
+
+.recBtnShelf {
+  margin-top: auto;
+  align-self: flex-start;
+  background-color: #276749;
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.recBtnShelf:hover {
+  background-color: #1f513a;
+}
+
+.recBtnShelfSaved {
+  background-color: #f4f1ea;
+  color: #382110;
+  border: 1px solid #dcd6cc;
+}
+
+.recBtnShelfSaved:hover {
+  background-color: #ebe5dc;
+}
+
 .authorList {
   display: flex;
   flex-direction: column;

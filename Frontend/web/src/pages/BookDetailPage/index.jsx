@@ -4,7 +4,40 @@ import { toast } from "react-toastify";
 import Header from "../../components/Header";
 import styles from "./BookDetailPage.module.css";
 import Footer from "../../components/Footer";
+import avatarDefault from "../../assets/avatar.png";
 import api, { getApiErrorMessage } from "../../plugins/axios";
+
+// Định dạng ngày xuất bản dạng dd/mm/yyyy hoặc tên tháng
+const formatPublishDate = (dateStr) => {
+  if (!dateStr) return null;
+  try {
+    const parts = String(dateStr).split("-");
+    if (parts.length === 3) {
+      const [year, month, day] = parts;
+      const d = new Date(Number(year), Number(month) - 1, Number(day));
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      }
+    }
+    return dateStr;
+  } catch {
+    return dateStr;
+  }
+};
+
+// Chuẩn hóa đường dẫn avatar từ API (xử lý cả URL tuyệt đối lẫn tương đối)
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+    return avatar;
+  }
+  const baseUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  return `${baseUrl}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+};
 
 export default function BookDetailPage() {
   const { id } = useParams();
@@ -373,11 +406,30 @@ export default function BookDetailPage() {
             <span className={styles.stars}>★★★★★</span>
             <span className={styles.avgNumber}>{avgRating}</span>
             <span className={styles.metaCount}>
-              ({reviews.length} reviews • {book.pages || "N/A"} pages)
+              ({book.review_count ?? reviews.length} reviews • {book.pages ? `${book.pages} pages` : "N/A"})
             </span>
           </div>
 
-          <div className={styles.genreTag}>Genres: {genreName}</div>
+          <div className={styles.metaRow}>
+            <div className={styles.genreTag}>Genres: {genreName}</div>
+            {book.publish_date && (
+              <span className={styles.metaInfoBadge}>
+                📅 Xuất bản: {formatPublishDate(book.publish_date)}
+              </span>
+            )}
+            {book.source_url && (
+              <a
+                href={book.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.sourceLinkBadge}
+                title="Xem nguồn gốc cuốn sách trên Goodreads/Internet"
+              >
+                🔗 Nguồn sách ↗
+              </a>
+            )}
+          </div>
+
           <p className={styles.description}>
             {book.description || "Chưa có thông tin mô tả chi tiết cho cuốn sách này."}
           </p>
@@ -457,40 +509,66 @@ export default function BookDetailPage() {
                     currentUser &&
                     (rev.user === currentUser.id ||
                       rev.username === currentUser.username);
+                  const avatarUrl = getAvatarUrl(rev.avatar);
+                  const firstLetter = (rev.username || rev.user?.username || "U")
+                    .charAt(0)
+                    .toUpperCase();
 
                   return (
                     <div key={rev.id} className={styles.reviewCard}>
-                      <div className={styles.reviewHeader}>
-                        <span className={styles.reviewerName}>
-                          {rev.username || rev.user?.username || "Độc giả"} —{" "}
-                          <span style={{ color: "#e87400" }}>
-                            {"★".repeat(rev.rating)}
-                          </span>
-                        </span>
-                        <span className={styles.reviewDate}>
-                          {rev.created_at
-                            ? new Date(rev.created_at).toLocaleDateString("vi-VN")
-                            : "Gần đây"}
-                        </span>
+                      <div className={styles.reviewerAvatarCol}>
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt={rev.username || "Reviewer"}
+                            className={styles.reviewerAvatar}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = avatarDefault;
+                            }}
+                          />
+                        ) : (
+                          <div className={styles.reviewerAvatarFallback}>
+                            {firstLetter}
+                          </div>
+                        )}
                       </div>
-                      <p className={styles.reviewComment}>{rev.comment}</p>
 
-                      {isOwner && (
-                        <div className={styles.actionRow}>
-                          <button
-                            onClick={() => handleEdit(rev)}
-                            className={styles.actionBtn}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(rev.id)}
-                            className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                          >
-                            Delete
-                          </button>
+                      <div className={styles.reviewBody}>
+                        <div className={styles.reviewHeader}>
+                          <div className={styles.reviewerInfo}>
+                            <span className={styles.reviewerName}>
+                              {rev.username || rev.user?.username || "Độc giả"}
+                            </span>
+                            <span className={styles.reviewStars}>
+                              {"★".repeat(rev.rating)}
+                            </span>
+                          </div>
+                          <span className={styles.reviewDate}>
+                            {rev.created_at
+                              ? new Date(rev.created_at).toLocaleDateString("vi-VN")
+                              : "Gần đây"}
+                          </span>
                         </div>
-                      )}
+                        <p className={styles.reviewComment}>{rev.comment}</p>
+
+                        {isOwner && (
+                          <div className={styles.actionRow}>
+                            <button
+                              onClick={() => handleEdit(rev)}
+                              className={styles.actionBtn}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(rev.id)}
+                              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })
